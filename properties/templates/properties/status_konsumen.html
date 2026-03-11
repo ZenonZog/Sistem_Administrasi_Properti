@@ -1,0 +1,96 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Status Konsumen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
+        .navbar-custom { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .badge-keterangan { background-color: #e0e7ff; color: #4338ca; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-custom py-3 mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="{% url 'dashboard' %}">
+                <i class="fa-solid fa-building-user me-2"></i> Sistem Administrasi Properti
+            </a>
+            <div class="ms-auto">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm me-2"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold m-0"><i class="fa-solid fa-clipboard-list text-primary me-2"></i> {{ title }}</h3>
+            <a href="{% url 'customer_create' %}" class="btn btn-primary shadow-sm"><i class="fa-solid fa-user-plus me-1"></i> Tambah Pelanggan Baru</a>
+        </div>
+
+        <div class="card card-custom">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4 py-3">No</th>
+                                <th class="py-3">Nama Customer</th>
+                                <th class="py-3">No. Telp</th>
+                                <th class="py-3">Blok / Unit</th>
+                                <th class="py-3">Cicilan Ke</th>
+                                <th class="py-3">Jlh Tagihan (Rp)</th>
+                                <th class="py-3">Progress Pembayaran</th>
+                                <th class="py-3">Sisa Hutang</th>
+                                <th class="py-3">Batas Tgl Bayar</th>
+                                <th class="py-3 text-center">Kelola Customer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cicilans %}
+                            <tr>
+                                <td class="px-4 text-muted">{{ forloop.counter }}</td>
+                                <td class="fw-bold text-dark">{{ item.customer.nama_lengkap }}</td>
+                                <td>{{ item.customer.no_telepon|default:"-" }}</td>
+                                <td>{{ item.unit.kode_blok }} - {{ item.unit.tipe_rumah }}</td>
+                                <td><span class="badge-keterangan">{{ item.keterangan_cicilan }}</span></td>
+                                <td class="fw-medium">{{ item.jumlah_cicilan|rupiah }}</td>
+                                <td class="small">
+                                    <div class="text-success fw-bold">{{ item.total_terbayar|rupiah }}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">dari {{ item.harga_rumah|rupiah }}</div>
+                                </td>
+                                <td class="text-danger fw-bold">{{ item.sisa_hutang|rupiah }}</td>
+                                <td>{{ item.tanggal_jatuh_tempo|date:"d M Y" }}</td>
+                                <td class="text-center">
+                                    <a href="{% url 'customer_update' item.customer.pk %}" class="btn btn-sm btn-outline-primary" title="Edit Profil Customer"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <a href="{% url 'customer_delete' item.customer.pk %}" class="btn btn-sm btn-outline-danger ms-1" title="Hapus Customer"><i class="fa-solid fa-trash-can"></i></a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="10" class="text-center py-4 text-muted">Belum ada data cicilan berjalan dari pelanggan terdaftar.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
