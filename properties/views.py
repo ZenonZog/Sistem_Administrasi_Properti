@@ -33,12 +33,28 @@ def dashboard(request):
         tanggal_jatuh_tempo__lte=batas_waktu
     ).order_by('tanggal_jatuh_tempo')
     
+    import json
+    # Data Pemasukan per Bulan untuk Chart.js (Tahun Ini)
+    months_revenue = [0] * 12
+    lunas_this_year = Cicilan.objects.filter(
+        status_bayar='Lunas',
+        tahun=today.year
+    )
+    for c in lunas_this_year:
+        # Bulan di python bernilai 1-12
+        if 1 <= c.bulan <= 12:
+            months_revenue[c.bulan - 1] += int(c.jumlah_cicilan)
+            
+    months_revenue_json = json.dumps(months_revenue)
+    
     context = {
         'total_unit': total_unit,
         'unit_tersedia': unit_tersedia,
         'unit_terjual': unit_terjual_atau_booking,
         'cicilan_jatuh_tempo': cicilan_jatuh_tempo,
         'today': today,
+        'revenue_data': months_revenue_json,
+        'current_year': today.year,
     }
     return render(request, 'properties/dashboard.html', context)
 
@@ -103,54 +119,44 @@ def mark_lunas(request, pk):
         cicilan.keterangan_cicilan = f"{cicilan.keterangan_cicilan} (Lunas)"
     cicilan.save()
     
-    # Auto-generate cicilan bulan berikutnya
-    # Mencari angka pada keterangan, misal "C1" atau "Cicilan Ke-10"
-    match = re.search(r'(\d+)', old_ket)
-    if match:
-        num = int(match.group(1))
-        # Mengubah jadi angka selanjutnya, misal C1 -> C2
-        new_ket = old_ket[:match.start()] + str(num + 1) + old_ket[match.end():]
-    else:
-        new_ket = old_ket + " Lanjutan"
-        
-    next_jatuh_tempo = add_months(cicilan.tanggal_jatuh_tempo, 1)
-    
-    # Simpan instance baris cicilan baru untuk bulan depan (Belum Lunas)
-    Cicilan.objects.create(
-        customer=cicilan.customer,
-        unit=cicilan.unit,
-        jumlah_cicilan=cicilan.jumlah_cicilan,
-        tanggal_jatuh_tempo=next_jatuh_tempo,
-        bulan=next_jatuh_tempo.month,
-        tahun=next_jatuh_tempo.year,
-        keterangan_cicilan=new_ket,
-        rekening=cicilan.rekening,
-        status_bayar='Belum Lunas'
-    )
-    
-    messages.success(request, f"Pembayaran {old_ket} a.n {cicilan.customer.nama_lengkap} divalidasi. Tagihan {new_ket} otomatis dibuat untuk bulan depan.")
+    messages.success(request, f"Pembayaran {old_ket} a.n {cicilan.customer.nama_lengkap} berhasil divalidasi lunas.")
     return redirect('dashboard')
 
 # --- REKAP STATUS SEMUA KONSUMEN & CRUD CUSTOMER ---
 
 def status_konsumen(request):
-    # Mengambil tagihan berjalan setiap konsumen
-    cicilans = Cicilan.objects.filter(status_bayar='Belum Lunas').select_related('customer', 'unit').order_by('customer__nama_lengkap', 'tanggal_jatuh_tempo')
+    customers = Customer.objects.prefetch_related('cicilan__unit').all().order_by('nama_lengkap')
     
-    # Menghitung total terbayar dan sisa hutang untuk masing-masing cicilan berjalan
-    for cicilan in cicilans:
-        # Cari total yang sudah dibayar Lunas untuk unit dan customer ini
-        terbayar_agg = Cicilan.objects.filter(
-            customer=cicilan.customer, 
-            unit=cicilan.unit, 
-            status_bayar='Lunas'
-        ).aggregate(total=Sum('jumlah_cicilan'))
+    cicilans_to_display = []
+    
+    for customer in customers:
+        # Get the first unpaid installment for this customer chronologically
+        next_unpaid = customer.cicilan.filter(status_bayar='Belum Lunas').order_by('tanggal_jatuh_tempo').first()
         
-        cicilan.total_terbayar = terbayar_agg['total'] or 0
-        cicilan.harga_rumah = cicilan.unit.harga_total
-        cicilan.sisa_hutang = cicilan.harga_rumah - cicilan.total_terbayar
+        # Calculate totals across all their installments for the associated unit
+        if next_unpaid:
+            terbayar_agg = customer.cicilan.filter(
+                unit=next_unpaid.unit,
+                status_bayar='Lunas'
+            ).aggregate(total=Sum('jumlah_cicilan'))
+            
+            next_unpaid.total_terbayar = terbayar_agg['total'] or 0
+            next_unpaid.harga_rumah = next_unpaid.unit.harga_total
+            next_unpaid.sisa_hutang = next_unpaid.harga_rumah - next_unpaid.total_terbayar
+            
+            cicilans_to_display.append(next_unpaid)
+        else:
+            # If no unpaid bills, perhaps fully paid off or no bills created
+            first_paid = customer.cicilan.filter(status_bayar='Lunas').order_by('tanggal_jatuh_tempo').last()
+            if first_paid:
+                first_paid.keterangan_cicilan = "LUNAS SEMUA"
+                first_paid.total_terbayar = first_paid.unit.harga_total
+                first_paid.harga_rumah = first_paid.unit.harga_total
+                first_paid.sisa_hutang = 0
+                first_paid.status_bayar = 'Lunas'
+                cicilans_to_display.append(first_paid)
 
-    return render(request, 'properties/status_konsumen.html', {'cicilans': cicilans, 'title': 'Data Status Cicilan Konsumen'})
+    return render(request, 'properties/status_konsumen.html', {'cicilans': cicilans_to_display, 'title': 'Data Status Cicilan Konsumen'})
 
 def customer_create(request):
     if request.method == 'POST':
@@ -170,20 +176,26 @@ def customer_create(request):
                 unit.status = 'Booking'
                 unit.save()
                 
-            # Otomatis ciptakan tagihan Cicilan pertama (C1)
-            Cicilan.objects.create(
-                customer=customer,
-                unit=unit,
-                jumlah_cicilan=jumlah_cicilan,
-                tanggal_jatuh_tempo=tanggal_jatuh_tempo,
-                bulan=tanggal_jatuh_tempo.month,
-                tahun=tanggal_jatuh_tempo.year,
-                keterangan_cicilan="C1",
-                rekening="-",
-                status_bayar="Belum Lunas"
-            )
+            # Otomatis ciptakan SEKUMPULAN tagihan Cicilan (bulk create)
+            cicilan_bulk = []
+            for i in range(lama_cicilan):
+                tgl_jatuh_tempo_berjalan = add_months(tanggal_jatuh_tempo, i)
+                cicilan_bulk.append(Cicilan(
+                    customer=customer,
+                    unit=unit,
+                    jumlah_cicilan=jumlah_cicilan,
+                    tanggal_jatuh_tempo=tgl_jatuh_tempo_berjalan,
+                    bulan=tgl_jatuh_tempo_berjalan.month,
+                    tahun=tgl_jatuh_tempo_berjalan.year,
+                    keterangan_cicilan=f"C{i+1}",
+                    rekening="-",
+                    status_bayar="Belum Lunas"
+                ))
+            
+            if cicilan_bulk:
+                Cicilan.objects.bulk_create(cicilan_bulk)
 
-            messages.success(request, f"Pelanggan Baru {customer.nama_lengkap} berhasil mendaftar (Blok {unit.kode_blok}). Tagihan Cicilan Pertama (C1) telah dibuat.")
+            messages.success(request, f"Pelanggan Baru {customer.nama_lengkap} divalidasi. Simulasi Tagihan dari C1 -> C{lama_cicilan} sukses dibuat otomatis ke database.")
             return redirect('status_konsumen')
     else:
         form = CustomerRegistrationForm()
