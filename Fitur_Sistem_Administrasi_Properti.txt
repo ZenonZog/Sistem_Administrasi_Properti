@@ -1,0 +1,45 @@
+=========================================================
+FITUR APLIKASI WEB SISTEM ADMINISTRASI PROPERTI
+=========================================================
+Aplikasi ini dirancang untuk mempermudah developer atau admin perumahan dalam mengelola data penjualan unit properti dan mencatat pembayaran cicilan secara digital, otomatis, dan terintegrasi.
+
+Berikut adalah fitur-fitur unggulan yang ada di dalam sistem ini:
+
+1. DASHBOARD RINGKASAN & GRAFIK (Responsive Design)
+   - Menampilkan total properti keseluruhan, unit yang masih 'Tersedia', dan unit yang sudah 'Terjual/Booked'.
+   - Dilengkapi tabel pengingat otomatis untuk tagihan cicilan yang mendekati jatuh tempo (H+7) atau yang sudah menunggak/terlewat.
+   - Terdapat Grafik Pemasukan Pelunasan (Bar/Line Chart) interaktif per bulan untuk menganalisis tren pendapatan perusahaan di tahun berjalan.
+   - Tampilan website sudah menyesuaikan layar Handphone (Mobile Responsive).
+
+2. KELOLA DATA PROPERTI (CRUD)
+   - Admin dapat menambah, mengubah, atau menghapus daftar blok/unit rumah.
+   - Menyimpan informasi penting seperti Kode Blok (cth: A5), Tipe Rumah (cth: Tipe 45), dan Harga Kesepakatan.
+
+3. PENDAFTARAN KONSUMEN & SIMULASI KREDIT OTOMATIS
+   - Mendaftarkan pelanggan baru beserta unit rumah yang dibelinya.
+   - Fitur "Auto-Fill": Saat memilih blok/unit, harga rumah akan terisi otomatis untuk menghindari salah ketik.
+   - Auto-Generate Tagihan: Hanya dengan memasukkan lama cicilan (misalnya 120 bulan), sistem akan langsung mensimulasikan dan membuat 120 jadwal tagihan secara otomatis ke dalam database tanpa perlu diinput manual tiap bulan.
+
+4. MONITORING STATUS & SISA HUTANG KONSUMEN
+   - Pada halaman "Data Konsumen", admin dapat melihat nama pelanggan, nomor kontak, serta tagihan spesifik yang *sedang berjalan*.
+   - Sistem secara cerdas menghitung berapa total uang yang sudah dibayar konsumen, dan mengkalkulasi Sisa Hutang/Kredit berjalan secara real-time.
+
+5. VERIFIKASI PELUNASAN ONE-CLICK
+   - Pembayaran cicilan yang masuk dapat diselesaikan hanya dengan menekan 1 tombol verifikasi lunas di Dashboard.
+   - Sistem akan mencatat cicilan bulan tersebut sebagai 'Lunas', dan tagihan bulan berikutnya akan otomatis muncul ke antrean daftar berjalan.
+
+6. INTEGRASI WHATSAPP PENAGIHAN
+   - Tersedia tombol shortcut WhatsApp di sebelah nama konsumen yang sedang jatuh tempo.
+   - Sekali klik akan langsung membuka chat WhatsApp dengan teks penagihan otomatis yang sudah tersusun rapi beserta nama dan blok propertinya (tanpa perlu ketik manual).
+
+7. EXPORT LAPORAN KE EXCEL (XLSX)
+   - Admin dapat mengunduh daftar konsumen yang sedang menyicil dan jatuh tempo ke dalam wujud file Microsoft Excel untuk keperluan audit, persentasi, atau laporan bulanan (Fitur Export Laporan).
+
+8. MANAJEMEN DATABASE KELAS ATAS (SuperAdmin)
+   - Tersedia pintu belakang khusus "Panel SuperAdmin" yang dapat digunakan oleh IT atau Manager untuk mengakses, mengedit, atau membersihkan data mentah dari keseluruhan aplikasi agar tidak ada data yang menyelip.
+
+9. CLOUD HOSTING 24/7 (Vercel & Aiven)
+   - Aplikasi ini 100% online. Menggunakan database Cloud MySQL (Aiven) dan Serverless Hosting (Vercel).
+   - Aksesibel kapanpun, dimanapun, lewat Laptop, Komputer Kantor, maupun Smartphone (Tanpa perlu instalasi di masing-masing perangkat).
+
+=========================================================

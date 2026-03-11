@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -117,4 +118,28 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+import os
+import tempfile
+import zipfile
+
 STATIC_URL = 'static/'
+
+# Vercel upload limits bypass: Extrak staticfiles.zip otomatis dari GitHub
+STATIC_ZIP = os.path.join(BASE_DIR, 'staticfiles.zip')
+TEMP_DIR = tempfile.gettempdir()
+EXTRACTED_DIR = os.path.join(TEMP_DIR, 'staticfiles_build')
+
+if os.path.exists(STATIC_ZIP) and not os.path.exists(EXTRACTED_DIR):
+    try:
+        with zipfile.ZipFile(STATIC_ZIP, 'r') as zip_ref:
+            zip_ref.extractall(TEMP_DIR)
+    except Exception:
+        pass
+
+if os.path.exists(EXTRACTED_DIR):
+    STATIC_ROOT = os.path.join(EXTRACTED_DIR, 'static')
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
+
+# Serve static files correctly without running collectstatic on vercel side if we do it locally
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
