@@ -22,6 +22,11 @@
         <div class="card card-custom p-4">
             <form method="POST">
                 {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Proyek Perumahan <span class="text-danger">*</span></label>
+                    {{ form.perumahan }}
+                    {{ form.perumahan.errors }}
+                </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Kode Blok <span class="text-danger">*</span></label>

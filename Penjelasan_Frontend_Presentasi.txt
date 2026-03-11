@@ -1,0 +1,15 @@
+Jika dosen atau penguji bertanya, "Aplikasi ini pakai Frontend apa?", kamu bisa menjawab dengan mantap:
+
+"Untuk bagian *Frontend*-nya (Tampilan antarmuka), saya menggunakan **Django Templates (HTML5 & CSS3)** yang dipadukan dengan *framework* **Bootstrap 5**."
+
+"Penggunaan Bootstrap 5 memungkinkan antarmuka aplikasi ini tampil secara responsif (*Mobile-Friendly*), bersih, dan modern tanpa harus menulis kerangka CSS dari awal.
+
+Selain itu, saya juga menambahkan beberapa sentuhan *Custom CSS* dengan konsep *Glassmorphism* (efek kaca tembus pandang pada kartu statistik) serta menggunakan **Chart.js (JavaScript)** untuk me-*render* grafik data pemasukan secara dinamis dan interaktif tanpa perlu nge-*reload* seluruh halaman."
+
+===
+**Ringkasan Stack Teknologi Lengkapmu:**
+- **Backend/Logic System:** Python (Framework: Django 4)
+- **Database:** MySQL v8 (Di-host menggunakan Aiven Cloud)
+- **Frontend/UI:** HTML5, CSS3, Vanilla JavaScript, & Bootstrap 5
+- **Data Visualization (Grafik):** Chart.js
+- **Server/Hosting:** Vercel (Serverless Deployment)

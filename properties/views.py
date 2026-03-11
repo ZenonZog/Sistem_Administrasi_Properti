@@ -201,14 +201,26 @@ def customer_create(request):
         form = CustomerRegistrationForm()
         
     import json
-    units = Unit.objects.all()
-    unit_prices = {unit.id: float(unit.harga_total) for unit in units}
-    unit_prices_json = json.dumps(unit_prices)
+    units = Unit.objects.filter(status='Tersedia')
+    perumahan_units = {}
+    
+    for u in units:
+        p_id = u.perumahan_id if u.perumahan_id else "null"
+        if p_id not in perumahan_units:
+            perumahan_units[p_id] = []
+            
+        perumahan_units[p_id].append({
+            'id': u.id,
+            'text': f"{u.kode_blok} - {u.tipe_rumah}",
+            'price': float(u.harga_total)
+        })
+        
+    perumahan_units_json = json.dumps(perumahan_units)
     
     return render(request, 'properties/customer_form.html', {
         'form': form, 
         'title': 'Register Pelanggan Baru & Cicilan',
-        'unit_prices_json': unit_prices_json
+        'perumahan_units_json': perumahan_units_json
     })
 
 def customer_update(request, pk):

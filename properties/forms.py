@@ -1,5 +1,5 @@
 from django import forms
-from .models import Customer, Unit
+from .models import Customer, Unit, Perumahan
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -12,6 +12,11 @@ class CustomerForm(forms.ModelForm):
         }
 
 class CustomerRegistrationForm(forms.ModelForm):
+    perumahan = forms.ModelChoiceField(
+        queryset=Perumahan.objects.all(),
+        label="Proyek Perumahan",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
     unit = forms.ModelChoiceField(
         queryset=Unit.objects.all(), 
         label="Daftar ke Blok / Unit", 
@@ -43,8 +48,9 @@ class CustomerRegistrationForm(forms.ModelForm):
 class UnitForm(forms.ModelForm):
     class Meta:
         model = Unit
-        fields = ['kode_blok', 'tipe_rumah', 'harga_total', 'status']
+        fields = ['perumahan', 'kode_blok', 'tipe_rumah', 'harga_total', 'status']
         widgets = {
+            'perumahan': forms.Select(attrs={'class': 'form-select'}),
             'kode_blok': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contoh: D1, A5'}),
             'tipe_rumah': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contoh: Tipe 36, Kavling'}),
             'harga_total': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Contoh: 250000000'}),

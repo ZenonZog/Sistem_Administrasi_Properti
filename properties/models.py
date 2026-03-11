@@ -2,7 +2,15 @@ from django.db import models
 
 # Create your models here.
 
+class Perumahan(models.Model):
+    nama_perumahan = models.CharField(max_length=150, unique=True, verbose_name="Nama Perumahan")
+    lokasi = models.TextField(blank=True, null=True, verbose_name="Lokasi / Alamat")
+    
+    def __str__(self):
+        return self.nama_perumahan
+
 class Unit(models.Model):
+    perumahan = models.ForeignKey(Perumahan, on_delete=models.CASCADE, related_name='units', null=True)
     STATUS_CHOICES = (
         ('Tersedia', 'Tersedia'),
         ('Booking', 'Booking'),

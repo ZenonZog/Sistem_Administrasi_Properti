@@ -57,23 +57,55 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Cek apakah ada data harga unit (dari backend)
-            {% if unit_prices_json %}
-            const unitPrices = {{ unit_prices_json|safe }};
+            {% if perumahan_units_json %}
+            const perumahanUnits = {{ perumahan_units_json|safe }};
+            const perumahanSelect = document.getElementById('id_perumahan');
             const unitSelect = document.getElementById('id_unit');
             const hargaInput = document.getElementById('id_harga_rumah');
             
-            if (unitSelect && hargaInput) {
-                // Saat ada perubahan pada dropdown properti
+            // Simpan initial option text
+            const defaultUnitOption = document.createElement('option');
+            defaultUnitOption.text = '---------';
+            defaultUnitOption.value = '';
+            
+            if (perumahanSelect && unitSelect && hargaInput) {
+                // Fungsi untuk merender ulang combobox Unit berdasarkan Perumahan
+                function updateUnitDropdown() {
+                    const selectedPerumahanId = perumahanSelect.value || "null";
+                    const availableUnits = perumahanUnits[selectedPerumahanId] || [];
+                    
+                    // Kosongkan list unit saat ini
+                    unitSelect.innerHTML = '';
+                    unitSelect.appendChild(defaultUnitOption.cloneNode(true));
+                    
+                    // Tambahkan opsi list unit yang sesuai dengan perumahan yg dipilih
+                    availableUnits.forEach(function(unit) {
+                        const option = document.createElement('option');
+                        option.value = unit.id;
+                        option.text = unit.text;
+                        option.dataset.price = unit.price;
+                        unitSelect.appendChild(option);
+                    });
+                    
+                    // Kosongkan harga saat ganti perumahan
+                    hargaInput.value = '';
+                }
+
+                // Saat pilihan perumahan diganti
+                perumahanSelect.addEventListener('change', updateUnitDropdown);
+
+                // Saat pilihan unit diganti (auto-fill harga)
                 unitSelect.addEventListener('change', function() {
-                    const selectedUnitId = this.value;
-                    if (selectedUnitId && unitPrices[selectedUnitId]) {
-                        // Isi harga secara otomatis dan sesuaikan format tanpa koma desimal ganda yang mengganggu
-                        hargaInput.value = unitPrices[selectedUnitId];
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption && selectedOption.dataset.price) {
+                        hargaInput.value = selectedOption.dataset.price;
                     } else {
                         hargaInput.value = '';
                     }
                 });
+                
+                // Trigger sekali saat halaman di-load
+                updateUnitDropdown();
             }
             {% endif %}
         });
