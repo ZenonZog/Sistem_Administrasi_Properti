@@ -63,18 +63,23 @@ def dashboard(request):
         if 1 <= c.bulan <= 12:
             months_revenue[c.bulan - 1] += int(c.jumlah_cicilan)
             
-    # Unit Terjual (Sales Qty & Value): Kapan rumah kejual? Kita pakai Cicilan 'C1' terbit di tahun ini
-    first_installments_this_year = Cicilan.objects.prefetch_related('unit').filter(
-        keterangan_cicilan='C1',
-        tahun=today.year
-    )
+    # Unit Terjual (Sales Qty & Value): 
+    # Logika yang lebih tepat: Unit dianggap terjual/booking jika statusnya != 'Tersedia'.
+    # Kapan terjualnya? Kita ambil dari Tanggal Jatuh Tempo Cicilan Paling Awal (biasanya DP / C1).
+    sold_units_qs = Unit.objects.exclude(status='Tersedia').prefetch_related('cicilan')
     if filter_perumahan_id:
-        first_installments_this_year = first_installments_this_year.filter(unit__perumahan_id=filter_perumahan_id)
+        sold_units_qs = sold_units_qs.filter(perumahan_id=filter_perumahan_id)
         
-    for c in first_installments_this_year:
-        if 1 <= c.bulan <= 12:
-            months_sales_qty[c.bulan - 1] += 1
-            months_sales_value[c.bulan - 1] += int(c.unit.harga_total)
+    for u in sold_units_qs:
+        # Cari cicilan pertama milik unit ini untuk mengetahui kapan unit ini "terjual"
+        first_installment = u.cicilan.order_by('tanggal_jatuh_tempo', 'id').first()
+        if first_installment:
+            # Jika cicilan pertamanya ada di tahun ini, berarti penjualannya dihitung tahun ini
+            if first_installment.tanggal_jatuh_tempo.year == today.year:
+                sale_month = first_installment.tanggal_jatuh_tempo.month
+                if 1 <= sale_month <= 12:
+                    months_sales_qty[sale_month - 1] += 1
+                    months_sales_value[sale_month - 1] += int(u.harga_total)
             
     months_revenue_json = json.dumps(months_revenue)
     months_sales_qty_json = json.dumps(months_sales_qty)
