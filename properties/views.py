@@ -190,6 +190,86 @@ def status_konsumen(request):
     }
     return render(request, 'properties/status_konsumen.html', context_data)
 
+def export_konsumen_excel(request):
+    search_query = request.GET.get('search', '')
+    filter_perumahan_id = request.GET.get('perumahan_id', '')
+
+    customers_qs = Customer.objects.prefetch_related('cicilan__unit__perumahan').order_by('nama_lengkap')
+    
+    if search_query:
+        from django.db.models import Q
+        customers_qs = customers_qs.filter(
+            Q(nama_lengkap__icontains=search_query) | 
+            Q(no_telepon__icontains=search_query)
+        )
+        
+    customers = customers_qs.distinct()
+    cicilans_to_display = []
+    
+    for customer in customers:
+        cicilan_qs = customer.cicilan.all()
+        if filter_perumahan_id:
+            cicilan_qs = cicilan_qs.filter(unit__perumahan_id=filter_perumahan_id)
+            
+        if not cicilan_qs.exists():
+            continue
+            
+        next_unpaid = cicilan_qs.filter(status_bayar='Belum Lunas').order_by('tanggal_jatuh_tempo').first()
+        if next_unpaid:
+            terbayar_agg = cicilan_qs.filter(
+                unit=next_unpaid.unit,
+                status_bayar='Lunas'
+            ).aggregate(total=Sum('jumlah_cicilan'))
+            next_unpaid.total_terbayar = terbayar_agg['total'] or 0
+            next_unpaid.harga_rumah = next_unpaid.unit.harga_total
+            next_unpaid.sisa_hutang = next_unpaid.harga_rumah - next_unpaid.total_terbayar
+            cicilans_to_display.append(next_unpaid)
+        else:
+            first_paid = cicilan_qs.filter(status_bayar='Lunas').order_by('tanggal_jatuh_tempo').last()
+            if first_paid:
+                first_paid.keterangan_cicilan = "LUNAS SEMUA"
+                first_paid.total_terbayar = first_paid.unit.harga_total
+                first_paid.harga_rumah = first_paid.unit.harga_total
+                first_paid.sisa_hutang = 0
+                first_paid.status_bayar = 'Lunas'
+                cicilans_to_display.append(first_paid)
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="Rekap_Status_Konsumen.xlsx"'
+
+    workbook = openpyxl.Workbook()
+    worksheet = workbook.active
+    worksheet.title = 'Data Konsumen'
+
+    columns = ['No', 'Nama Customer', 'No. Telp', 'Perumahan', 'Blok/Unit', 'Cicilan Ke', 'Jlh Tagihan (Rp)', 'Total Terbayar (Rp)', 'Sisa Hutang (Rp)']
+    for col_num, column_title in enumerate(columns, 1):
+        worksheet.cell(row=1, column=col_num, value=column_title)
+
+    row_num = 1
+    for item in cicilans_to_display:
+        row_num += 1
+        perumahan = item.unit.perumahan.nama_perumahan if item.unit.perumahan else "-"
+        blok_unit = f"{item.unit.kode_blok} - {item.unit.tipe_rumah}"
+        telp = item.customer.no_telepon if item.customer.no_telepon else "-"
+        
+        row = [
+            row_num - 1,
+            item.customer.nama_lengkap,
+            telp,
+            perumahan,
+            blok_unit,
+            item.keterangan_cicilan,
+            float(item.jumlah_cicilan),
+            float(item.total_terbayar),
+            float(item.sisa_hutang)
+        ]
+        
+        for col_num, cell_value in enumerate(row, 1):
+            worksheet.cell(row=row_num, column=col_num, value=cell_value)
+
+    workbook.save(response)
+    return response
+
 def customer_create(request):
     if request.method == 'POST':
         form = CustomerRegistrationForm(request.POST)
@@ -294,6 +374,38 @@ def customer_delete(request, pk):
 def unit_list(request):
     units = Unit.objects.all().order_by('kode_blok')
     return render(request, 'properties/unit_list.html', {'units': units})
+
+def export_properti_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="Rekap_Data_Properti.xlsx"'
+
+    workbook = openpyxl.Workbook()
+    worksheet = workbook.active
+    worksheet.title = 'Data Properti'
+
+    columns = ['No', 'Perumahan', 'Kode Blok', 'Tipe/Model', 'Harga Total (Rp)', 'Status']
+    for col_num, column_title in enumerate(columns, 1):
+        worksheet.cell(row=1, column=col_num, value=column_title)
+
+    units = Unit.objects.select_related('perumahan').all().order_by('perumahan__nama_perumahan', 'kode_blok')
+    
+    row_num = 1
+    for item in units:
+        row_num += 1
+        perumahan = item.perumahan.nama_perumahan if item.perumahan else "-"
+        row = [
+            row_num - 1,
+            perumahan,
+            item.kode_blok,
+            item.tipe_rumah,
+            float(item.harga_total),
+            item.status
+        ]
+        for col_num, cell_value in enumerate(row, 1):
+            worksheet.cell(row=row_num, column=col_num, value=cell_value)
+
+    workbook.save(response)
+    return response
 
 def unit_create(request):
     if request.method == 'POST':

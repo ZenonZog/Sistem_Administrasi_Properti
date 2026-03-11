@@ -17,4 +17,8 @@ urlpatterns = [
     path('units/add/', views.unit_create, name='unit_create'),
     path('units/<int:pk>/edit/', views.unit_update, name='unit_update'),
     path('units/<int:pk>/delete/', views.unit_delete, name='unit_delete'),
+    
+    # Export URLs
+    path('export-konsumen/', views.export_konsumen_excel, name='export_konsumen_excel'),
+    path('export-properti/', views.export_properti_excel, name='export_properti_excel'),
 ]
