@@ -105,6 +105,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         .table-header h4 {
             margin: 0;
@@ -116,6 +118,15 @@
         }
         .table-responsive {
             padding: 0 1.5rem 1.5rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .table-responsive::-webkit-scrollbar {
+            height: 6px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
         }
         .table {
             margin-bottom: 0;
@@ -167,6 +178,22 @@
             font-weight: 600;
         }
         
+        /* Mobile Responsive */
+        @media (max-width: 991px) {
+            .navbar-brand { font-size: 1.1rem; }
+            .btn-outline-primary, .btn-primary { width: 100%; margin-left: 0 !important; text-align: left; }
+        }
+        @media (max-width: 768px) {
+            .stat-card { padding: 1rem; }
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .table-responsive { padding: 0 1rem 1rem; }
+            .page-header { font-size: 1.5rem; }
+            .icon-box { width: 50px; height: 50px; font-size: 1.4rem; }
+            .stat-info h2 { font-size: 1.6rem; }
+        }
     </style>
 </head>
 <body>
@@ -177,16 +204,21 @@
             <a class="navbar-brand" href="{% url 'dashboard' %}">
                 <i class="fa-solid fa-building-user me-2"></i> Sistem Administrasi Properti
             </a>
-            <div class="d-flex gx-2">
-                <a href="{% url 'status_konsumen' %}" class="btn btn-outline-primary fw-medium rounded-pill px-4 ms-2">
-                    <i class="fa-solid fa-book-open me-1"></i> Data Konsumen
-                </a>
-                <a href="{% url 'unit_list' %}" class="btn btn-outline-primary fw-medium rounded-pill px-4 ms-2">
-                    <i class="fa-solid fa-house-user me-1"></i> Kelola Properti
-                </a>
-                <a href="/admin/" class="btn btn-primary fw-medium rounded-pill px-4 shadow-sm ms-2">
-                    <i class="fa-solid fa-user-lock me-1"></i> Panel SuperAdmin
-                </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMobile" aria-controls="navbarMobile" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarMobile">
+                <div class="d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0">
+                    <a href="{% url 'status_konsumen' %}" class="btn btn-outline-primary fw-medium rounded-pill px-4">
+                        <i class="fa-solid fa-book-open me-1"></i> Data Konsumen
+                    </a>
+                    <a href="{% url 'unit_list' %}" class="btn btn-outline-primary fw-medium rounded-pill px-4">
+                        <i class="fa-solid fa-house-user me-1"></i> Kelola Properti
+                    </a>
+                    <a href="/admin/" class="btn btn-primary fw-medium rounded-pill px-4 shadow-sm">
+                        <i class="fa-solid fa-user-lock me-1"></i> Panel SuperAdmin
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
