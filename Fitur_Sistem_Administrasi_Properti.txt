@@ -11,34 +11,43 @@ Berikut adalah fitur-fitur unggulan yang ada di dalam sistem ini:
    - Terdapat Grafik Pemasukan Pelunasan (Bar/Line Chart) interaktif per bulan untuk menganalisis tren pendapatan perusahaan di tahun berjalan.
    - Tampilan website sudah menyesuaikan layar Handphone (Mobile Responsive).
 
-2. KELOLA DATA PROPERTI (CRUD)
+2. MULTI-PROYEK PERUMAHAN (Cascading Data)
+   - Sistem ini mendukung manajemen banyak cabang perumahan sekaligus (misal: Gardenia, Genara, Tijara, dll).
+   - Seluruh data unit dan konsumen tersortir rapi berdasarkan lokasi proyek perumahan yang mereka ambil.
+
+3. KELOLA DATA PROPERTI (CRUD)
    - Admin dapat menambah, mengubah, atau menghapus daftar blok/unit rumah.
-   - Menyimpan informasi penting seperti Kode Blok (cth: A5), Tipe Rumah (cth: Tipe 45), dan Harga Kesepakatan.
+   - Menyimpan informasi penting seperti Nama Perumahan, Kode Blok (cth: A5), Tipe Rumah (cth: Tipe 45), dan Harga Kesepakatan.
 
-3. PENDAFTARAN KONSUMEN & SIMULASI KREDIT OTOMATIS
-   - Mendaftarkan pelanggan baru beserta unit rumah yang dibelinya.
+4. PENDAFTARAN KONSUMEN & SIMULASI KREDIT OTOMATIS
+   - Mendaftarkan pelanggan baru beserta unit rumah yang dibelinya dengan sistem Dropdown bertingkat (Pilih Perumahan -> Muncul Blok yang tersedia di sana).
    - Fitur "Auto-Fill": Saat memilih blok/unit, harga rumah akan terisi otomatis untuk menghindari salah ketik.
-   - Auto-Generate Tagihan: Hanya dengan memasukkan lama cicilan (misalnya 120 bulan), sistem akan langsung mensimulasikan dan membuat 120 jadwal tagihan secara otomatis ke dalam database tanpa perlu diinput manual tiap bulan.
+   - Auto-Generate Tagihan: Hanya dengan memasukkan lama cicilan (misalnya 120 bulan), sistem akan langsung mensimulasikan dan membuat keseluruhan tagihan (120 bulan) secara otomatis ke dalam database tanpa perlu diinput manual tiap bulan.
 
-4. MONITORING STATUS & SISA HUTANG KONSUMEN
+5. MONITORING STATUS & SISA HUTANG KONSUMEN (Advanced Search & Filter)
    - Pada halaman "Data Konsumen", admin dapat melihat nama pelanggan, nomor kontak, serta tagihan spesifik yang *sedang berjalan*.
+   - Menyediakan fitur "Smart Filter & Search": Admin bisa memfilter konsumen berdasarkan Perumahan, atau langsung mengetik nama konsumen di kolom pencarian.
    - Sistem secara cerdas menghitung berapa total uang yang sudah dibayar konsumen, dan mengkalkulasi Sisa Hutang/Kredit berjalan secara real-time.
 
-5. VERIFIKASI PELUNASAN ONE-CLICK
-   - Pembayaran cicilan yang masuk dapat diselesaikan hanya dengan menekan 1 tombol verifikasi lunas di Dashboard.
+6. VERIFIKASI PELUNASAN ONE-CLICK
+   - Pembayaran cicilan yang masuk dapat diselesaikan hanya dengan menekan 1 tombol verifikasi lunas di Dashboard atau di detail pelanggan.
    - Sistem akan mencatat cicilan bulan tersebut sebagai 'Lunas', dan tagihan bulan berikutnya akan otomatis muncul ke antrean daftar berjalan.
 
-6. INTEGRASI WHATSAPP PENAGIHAN
+7. EXPORT LAPORAN KE EXCEL (XLSX)
+   - Admin dapat mendownload 3 jenis laporan langsung ke Microsoft Excel hanya dalam hitungan detik:
+     a) Laporan Tunggakan & Jatuh Tempo (Dari Dashboard Utama).
+     b) Laporan Status Semua Konsumen & Sisa Hutang (Dari halaman Status Konsumen, menyesuaikan dengan filter yang sedang aktif).
+     c) Laporan Master Data Properti (Dari halaman Daftar Properti).
+   - Fitur ini sangat mempermudah pembuatan laporan bulanan untuk diserahkan kepada Pimpinan/Atasan.
+
+8. INTEGRASI WHATSAPP PENAGIHAN
    - Tersedia tombol shortcut WhatsApp di sebelah nama konsumen yang sedang jatuh tempo.
    - Sekali klik akan langsung membuka chat WhatsApp dengan teks penagihan otomatis yang sudah tersusun rapi beserta nama dan blok propertinya (tanpa perlu ketik manual).
 
-7. EXPORT LAPORAN KE EXCEL (XLSX)
-   - Admin dapat mengunduh daftar konsumen yang sedang menyicil dan jatuh tempo ke dalam wujud file Microsoft Excel untuk keperluan audit, persentasi, atau laporan bulanan (Fitur Export Laporan).
-
-8. MANAJEMEN DATABASE KELAS ATAS (SuperAdmin)
+9. MANAJEMEN DATABASE KELAS ATAS (SuperAdmin)
    - Tersedia pintu belakang khusus "Panel SuperAdmin" yang dapat digunakan oleh IT atau Manager untuk mengakses, mengedit, atau membersihkan data mentah dari keseluruhan aplikasi agar tidak ada data yang menyelip.
 
-9. CLOUD HOSTING 24/7 (Vercel & Aiven)
+10. CLOUD HOSTING 24/7 (Vercel & Aiven)
    - Aplikasi ini 100% online. Menggunakan database Cloud MySQL (Aiven) dan Serverless Hosting (Vercel).
    - Aksesibel kapanpun, dimanapun, lewat Laptop, Komputer Kantor, maupun Smartphone (Tanpa perlu instalasi di masing-masing perangkat).
 

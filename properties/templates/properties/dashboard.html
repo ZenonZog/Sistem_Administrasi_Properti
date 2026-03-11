@@ -225,7 +225,19 @@
 
     <!-- Main Content -->
     <div class="container my-4">
-        <h2 class="page-header">Dashboard Ringkasan</h2>
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+            <h2 class="page-header mb-0">Dashboard Ringkasan</h2>
+            
+            <form method="GET" action="{% url 'dashboard' %}" class="d-flex align-items-center gap-2">
+                <label for="perumahanFilter" class="fw-medium text-muted mb-0 text-nowrap"><i class="fa-solid fa-filter me-1"></i> Filter:</label>
+                <select name="perumahan_id" id="perumahanFilter" class="form-select border-primary shadow-sm" onchange="this.form.submit()" style="min-width: 200px;">
+                    <option value="">-- Semua Perumahan --</option>
+                    {% for p in perumahans %}
+                        <option value="{{ p.id }}" {% if p.id == filter_perumahan_id %}selected{% endif %}>{{ p.nama_perumahan }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
         
         <!-- Stats Row -->
         <div class="row g-4">
@@ -268,7 +280,7 @@
         <div class="row mt-1 g-4">
             <div class="col-12">
                 <div class="stat-card p-4 d-block">
-                    <h5 class="mb-4 text-secondary"><i class="fa-solid fa-chart-line me-2"></i> Grafik Pemasukan Pelunasan Tahun {{ current_year }}</h5>
+                    <h5 class="mb-4 text-secondary"><i class="fa-solid fa-chart-line me-2"></i> Grafik Penjualan & Pemasukan Tahun {{ current_year }}</h5>
                     <div style="height: 300px; width: 100%;">
                         <canvas id="revenueChart"></canvas>
                     </div>
@@ -359,9 +371,12 @@
             const rawData = '{{ revenue_data|escapejs }}';
             const revenueData = JSON.parse(rawData);
             
+            const rawSalesData = '{{ sales_qty_data|escapejs }}';
+            const salesData = JSON.parse(rawSalesData);
+            
             const ctx = document.getElementById('revenueChart').getContext('2d');
             
-            // Gradient Fill untuk Line Chart
+            // Gradient Fill untuk Line Chart (Pemasukan)
             const gradient = ctx.createLinearGradient(0, 0, 0, 400);
             gradient.addColorStop(0, 'rgba(79, 70, 229, 0.5)'); // Indigo
             gradient.addColorStop(1, 'rgba(79, 70, 229, 0.05)');
@@ -370,44 +385,103 @@
                 type: 'line',
                 data: {
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
-                    datasets: [{
-                        label: 'Total Pemasukan (Rp)',
-                        data: revenueData,
-                        borderColor: '#4f46e5',
-                        backgroundColor: gradient,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#4f46e5',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        fill: true,
-                        tension: 0.4 // Membuat garis melengkung (smooth curve)
-                    }]
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Unit Terjual (Qty)',
+                            data: salesData,
+                            backgroundColor: 'rgba(16, 185, 129, 0.8)', // Green
+                            borderRadius: 6,
+                            borderWidth: 0,
+                            yAxisID: 'yQty',
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: 'Total Pemasukan (Rp)',
+                            data: revenueData,
+                            borderColor: '#4f46e5',
+                            backgroundColor: gradient,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#4f46e5',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: true,
+                            tension: 0.4, // Membuat garis melengkung (smooth curve)
+                            yAxisID: 'yRev',
+                            order: 1
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
                     plugins: {
-                        legend: { display: false },
+                        legend: { 
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8
+                            }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
+                                    let datasetLabel = context.dataset.label || '';
                                     let value = context.parsed.y;
-                                    return ' Rp ' + value.toLocaleString('id-ID');
+                                    
+                                    if (datasetLabel.includes('Pemasukan')) {
+                                        return datasetLabel + ': Rp ' + value.toLocaleString('id-ID');
+                                    } else {
+                                        return datasetLabel + ': ' + value + ' Unit';
+                                    }
                                 }
                             }
                         }
                     },
                     scales: {
-                        y: {
+                        yRev: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
                             beginAtZero: true,
                             grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
                             ticks: {
                                 callback: function(value) {
-                                    if (value >= 1000000) return 'Rp ' + (value / 1000000) + ' Juta';
+                                    if (value >= 1000000000) return 'Rp ' + (value / 1000000000) + ' M';
+                                    if (value >= 1000000) return 'Rp ' + (value / 1000000) + ' Jt';
                                     return 'Rp ' + value.toLocaleString('id-ID');
                                 }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Pemasukan (Rp)',
+                                color: '#4f46e5',
+                                font: { size: 10, weight: 'bold' }
+                            }
+                        },
+                        yQty: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false }, // Jangan timpa grid yRev
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0
+                            },
+                            title: {
+                                display: true,
+                                text: 'Unit Terjual',
+                                color: '#10b981',
+                                font: { size: 10, weight: 'bold' }
                             }
                         },
                         x: {

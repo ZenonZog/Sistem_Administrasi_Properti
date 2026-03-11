@@ -18,34 +18,67 @@ def add_months(sourcedate, months):
     return sourcedate.replace(year=year, month=month, day=day)
 
 def dashboard(request):
-    # Statistik Keseluruhan
-    total_unit = Unit.objects.count()
-    unit_tersedia = Unit.objects.filter(status='Tersedia').count()
+    from .models import Perumahan
+    
+    # Ambil filter perumahan dari parameter GET
+    filter_perumahan_id = request.GET.get('perumahan_id', '')
+    
+    # Statistik Keseluruhan (Berdasarkan filter jika ada)
+    units_qs = Unit.objects.all()
+    if filter_perumahan_id:
+        units_qs = units_qs.filter(perumahan_id=filter_perumahan_id)
+        
+    total_unit = units_qs.count()
+    unit_tersedia = units_qs.filter(status='Tersedia').count()
     unit_terjual_atau_booking = total_unit - unit_tersedia
     
     # Pengingat Jatuh Tempo (H+7 atau lewat)
     today = timezone.now().date()
     batas_waktu = today + timedelta(days=7)
     
-    # Menampilkan cicilan yang belum lunas dan tanggal jatuh temponya kurang dari atau sama dengan 7 hari dari sekarang
-    cicilan_jatuh_tempo = Cicilan.objects.filter(
+    cicilan_jatuh_tempo_qs = Cicilan.objects.filter(
         status_bayar='Belum Lunas',
         tanggal_jatuh_tempo__lte=batas_waktu
-    ).order_by('tanggal_jatuh_tempo')
+    )
+    if filter_perumahan_id:
+        cicilan_jatuh_tempo_qs = cicilan_jatuh_tempo_qs.filter(unit__perumahan_id=filter_perumahan_id)
+        
+    cicilan_jatuh_tempo = cicilan_jatuh_tempo_qs.order_by('tanggal_jatuh_tempo')
     
     import json
-    # Data Pemasukan per Bulan untuk Chart.js (Tahun Ini)
+    # Data Pemasukan (Revenue) & Penjualan Unit per Bulan untuk Chart.js (Tahun Ini)
     months_revenue = [0] * 12
+    months_sales_qty = [0] * 12
+    
+    # Revenue: Berdasarkan Cicilan yang "Lunas" di tahun ini
     lunas_this_year = Cicilan.objects.filter(
         status_bayar='Lunas',
         tahun=today.year
     )
+    if filter_perumahan_id:
+        lunas_this_year = lunas_this_year.filter(unit__perumahan_id=filter_perumahan_id)
+        
     for c in lunas_this_year:
-        # Bulan di python bernilai 1-12
         if 1 <= c.bulan <= 12:
             months_revenue[c.bulan - 1] += int(c.jumlah_cicilan)
             
+    # Unit Terjual (Sales Qty): Kapan rumah kejual? Kita pakai Cicilan 'C1' terbit di tahun ini
+    first_installments_this_year = Cicilan.objects.filter(
+        keterangan_cicilan='C1',
+        tahun=today.year
+    )
+    if filter_perumahan_id:
+        first_installments_this_year = first_installments_this_year.filter(unit__perumahan_id=filter_perumahan_id)
+        
+    for c in first_installments_this_year:
+        if 1 <= c.bulan <= 12:
+            months_sales_qty[c.bulan - 1] += 1
+            
     months_revenue_json = json.dumps(months_revenue)
+    months_sales_qty_json = json.dumps(months_sales_qty)
+    
+    # Ambil semua perumahan untuk opsi Filter Dropdown
+    perumahans = Perumahan.objects.all().order_by('nama_perumahan')
     
     context = {
         'total_unit': total_unit,
@@ -54,7 +87,10 @@ def dashboard(request):
         'cicilan_jatuh_tempo': cicilan_jatuh_tempo,
         'today': today,
         'revenue_data': months_revenue_json,
+        'sales_qty_data': months_sales_qty_json,
         'current_year': today.year,
+        'perumahans': perumahans,
+        'filter_perumahan_id': int(filter_perumahan_id) if filter_perumahan_id else '',
     }
     return render(request, 'properties/dashboard.html', context)
 
