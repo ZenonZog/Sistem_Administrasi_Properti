@@ -41,6 +41,30 @@
             <h3 class="fw-bold m-0"><i class="fa-solid fa-clipboard-list text-primary me-2"></i> {{ title }}</h3>
             <a href="{% url 'customer_create' %}" class="btn btn-primary shadow-sm"><i class="fa-solid fa-user-plus me-1"></i> Tambah Pelanggan Baru</a>
         </div>
+        
+        <!-- Filter Bar -->
+        <div class="card card-custom mb-4">
+            <div class="card-body">
+                <form method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small fw-bold">Cari Nama Customer</label>
+                        <input type="text" name="search" class="form-control" placeholder="Ketik nama customer..." value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small fw-bold">Filter Cabang / Perumahan</label>
+                        <select name="perumahan_id" class="form-select">
+                            <option value="">-- Semua Perumahan --</option>
+                            {% for p in perumahans %}
+                                <option value="{{ p.id }}" {% if p.id == filter_perumahan_id %}selected{% endif %}>{{ p.nama_perumahan }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-secondary w-100"><i class="fa-solid fa-magnifying-glass me-1"></i> Terapkan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <div class="card card-custom">
             <div class="card-body p-0">
@@ -51,6 +75,7 @@
                                 <th class="px-4 py-3">No</th>
                                 <th class="py-3">Nama Customer</th>
                                 <th class="py-3">No. Telp</th>
+                                <th class="py-3">Perumahan</th>
                                 <th class="py-3">Blok / Unit</th>
                                 <th class="py-3">Cicilan Ke</th>
                                 <th class="py-3">Jlh Tagihan (Rp)</th>
@@ -66,6 +91,7 @@
                                 <td class="px-4 text-muted">{{ forloop.counter }}</td>
                                 <td class="fw-bold text-dark">{{ item.customer.nama_lengkap }}</td>
                                 <td>{{ item.customer.no_telepon|default:"-" }}</td>
+                                <td class="fw-bold text-secondary">{{ item.unit.perumahan.nama_perumahan|default:"-" }}</td>
                                 <td>{{ item.unit.kode_blok }} - {{ item.unit.tipe_rumah }}</td>
                                 <td><span class="badge-keterangan">{{ item.keterangan_cicilan }}</span></td>
                                 <td class="fw-medium">{{ item.jumlah_cicilan|rupiah }}</td>
@@ -82,7 +108,10 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="10" class="text-center py-4 text-muted">Belum ada data cicilan berjalan dari pelanggan terdaftar.</td>
+                                <td colspan="11" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-folder-open mb-3 fs-3"></i><br>
+                                    Belum ada data cicilan konsumen aktif atau<br>tidak ada yang cocok dengan filter pencarianmu.
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

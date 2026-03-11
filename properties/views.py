@@ -125,17 +125,39 @@ def mark_lunas(request, pk):
 # --- REKAP STATUS SEMUA KONSUMEN & CRUD CUSTOMER ---
 
 def status_konsumen(request):
-    customers = Customer.objects.prefetch_related('cicilan__unit').all().order_by('nama_lengkap')
+    search_query = request.GET.get('search', '')
+    filter_perumahan_id = request.GET.get('perumahan_id', '')
+
+    # Base query for customers
+    customers_qs = Customer.objects.prefetch_related('cicilan__unit__perumahan').order_by('nama_lengkap')
     
+    if search_query:
+        from django.db.models import Q
+        customers_qs = customers_qs.filter(
+            Q(nama_lengkap__icontains=search_query) | 
+            Q(no_telepon__icontains=search_query)
+        )
+        
+    customers = customers_qs.distinct()
     cicilans_to_display = []
     
     for customer in customers:
-        # Get the first unpaid installment for this customer chronologically
-        next_unpaid = customer.cicilan.filter(status_bayar='Belum Lunas').order_by('tanggal_jatuh_tempo').first()
+        # Base query for cicilannya si customer
+        cicilan_qs = customer.cicilan.all()
+        
+        # Apply perumahan filter to this customer's cicilans if provided
+        if filter_perumahan_id:
+            cicilan_qs = cicilan_qs.filter(unit__perumahan_id=filter_perumahan_id)
+            
+        if not cicilan_qs.exists():
+            continue  # The customer might exist, but has no cicilan matching the filter
+            
+        # Get the first unpaid installment for this customer chronologically based on filter
+        next_unpaid = cicilan_qs.filter(status_bayar='Belum Lunas').order_by('tanggal_jatuh_tempo').first()
         
         # Calculate totals across all their installments for the associated unit
         if next_unpaid:
-            terbayar_agg = customer.cicilan.filter(
+            terbayar_agg = cicilan_qs.filter(
                 unit=next_unpaid.unit,
                 status_bayar='Lunas'
             ).aggregate(total=Sum('jumlah_cicilan'))
@@ -146,8 +168,8 @@ def status_konsumen(request):
             
             cicilans_to_display.append(next_unpaid)
         else:
-            # If no unpaid bills, perhaps fully paid off or no bills created
-            first_paid = customer.cicilan.filter(status_bayar='Lunas').order_by('tanggal_jatuh_tempo').last()
+            # If no unpaid bills, perhaps fully paid off based on filter
+            first_paid = cicilan_qs.filter(status_bayar='Lunas').order_by('tanggal_jatuh_tempo').last()
             if first_paid:
                 first_paid.keterangan_cicilan = "LUNAS SEMUA"
                 first_paid.total_terbayar = first_paid.unit.harga_total
@@ -155,8 +177,18 @@ def status_konsumen(request):
                 first_paid.sisa_hutang = 0
                 first_paid.status_bayar = 'Lunas'
                 cicilans_to_display.append(first_paid)
+                
+    from .models import Perumahan
+    perumahans = Perumahan.objects.all().order_by('nama_perumahan')
 
-    return render(request, 'properties/status_konsumen.html', {'cicilans': cicilans_to_display, 'title': 'Data Status Cicilan Konsumen'})
+    context_data = {
+        'cicilans': cicilans_to_display, 
+        'title': 'Data Status Cicilan Konsumen',
+        'perumahans': perumahans,
+        'search_query': search_query,
+        'filter_perumahan_id': int(filter_perumahan_id) if filter_perumahan_id else ''
+    }
+    return render(request, 'properties/status_konsumen.html', context_data)
 
 def customer_create(request):
     if request.method == 'POST':
