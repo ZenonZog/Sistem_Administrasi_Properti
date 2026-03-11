@@ -73,18 +73,13 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'db_properti',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-        }
-    }
+    'default': dj_database_url.config(
+        default='mysql://avnadmin:AVNS_zwdbuFy0ymDg-rLbP7y@mysql-287b1dd2-sistem-administrasi-properti12.j.aivencloud.com:24851/defaultdb',
+        engine='django.db.backends.mysql'
+    )
 }
 
 
