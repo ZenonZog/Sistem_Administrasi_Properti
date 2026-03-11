@@ -276,13 +276,23 @@
             </div>
         </div>
 
-        <!-- Revenue Chart -->
+        <!-- Charts -->
         <div class="row mt-1 g-4">
+            <!-- Pemasukan -->
             <div class="col-12">
                 <div class="stat-card p-4 d-block">
-                    <h5 class="mb-4 text-secondary"><i class="fa-solid fa-chart-line me-2"></i> Grafik Penjualan & Pemasukan Tahun {{ current_year }}</h5>
+                    <h5 class="mb-4 text-secondary"><i class="fa-solid fa-money-bill-wave me-2"></i> Grafik Pemasukan Pelunasan Tahun {{ current_year }}</h5>
                     <div style="height: 300px; width: 100%;">
                         <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <!-- Penjualan -->
+            <div class="col-12">
+                <div class="stat-card p-4 d-block">
+                    <h5 class="mb-4 text-secondary"><i class="fa-solid fa-chart-line me-2"></i> Grafik Penjualan Properti Tahun {{ current_year }}</h5>
+                    <div style="height: 300px; width: 100%;">
+                        <canvas id="salesChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -374,14 +384,77 @@
             const rawSalesData = '{{ sales_qty_data|escapejs }}';
             const salesData = JSON.parse(rawSalesData);
             
-            const ctx = document.getElementById('revenueChart').getContext('2d');
+            const rawSalesValueData = '{{ sales_value_data|escapejs }}';
+            const salesValueData = JSON.parse(rawSalesValueData);
+            
+            // --- 1. GRAFIK PEMASUKAN ---
+            const ctxRev = document.getElementById('revenueChart').getContext('2d');
             
             // Gradient Fill untuk Line Chart (Pemasukan)
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(79, 70, 229, 0.5)'); // Indigo
-            gradient.addColorStop(1, 'rgba(79, 70, 229, 0.05)');
+            const gradientRev = ctxRev.createLinearGradient(0, 0, 0, 400);
+            gradientRev.addColorStop(0, 'rgba(79, 70, 229, 0.5)'); // Indigo
+            gradientRev.addColorStop(1, 'rgba(79, 70, 229, 0.05)');
 
-            new Chart(ctx, {
+            new Chart(ctxRev, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                    datasets: [{
+                        label: 'Total Pemasukan (Rp)',
+                        data: revenueData,
+                        borderColor: '#4f46e5',
+                        backgroundColor: gradientRev,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#4f46e5',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let value = context.parsed.y;
+                                    return ' Rp ' + value.toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 1000000000) return 'Rp ' + (value / 1000000000) + ' M';
+                                    if (value >= 1000000) return 'Rp ' + (value / 1000000) + ' Jt';
+                                    return 'Rp ' + value.toLocaleString('id-ID');
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false }
+                        }
+                    }
+                }
+            });
+            
+            // --- 2. GRAFIK PENJUALAN PROPERTI ---
+            const ctxSales = document.getElementById('salesChart').getContext('2d');
+            
+            const gradientSales = ctxSales.createLinearGradient(0, 0, 0, 400);
+            gradientSales.addColorStop(0, 'rgba(16, 185, 129, 0.5)'); // Green
+            gradientSales.addColorStop(1, 'rgba(16, 185, 129, 0.05)');
+
+            new Chart(ctxSales, {
                 type: 'line',
                 data: {
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
@@ -390,7 +463,7 @@
                             type: 'bar',
                             label: 'Unit Terjual (Qty)',
                             data: salesData,
-                            backgroundColor: 'rgba(16, 185, 129, 0.8)', // Green
+                            backgroundColor: 'rgba(245, 158, 11, 0.8)', // Amber/Orange
                             borderRadius: 6,
                             borderWidth: 0,
                             yAxisID: 'yQty',
@@ -398,19 +471,19 @@
                         },
                         {
                             type: 'line',
-                            label: 'Total Pemasukan (Rp)',
-                            data: revenueData,
-                            borderColor: '#4f46e5',
-                            backgroundColor: gradient,
+                            label: 'Nilai Penjualan (Rp)',
+                            data: salesValueData,
+                            borderColor: '#10b981', // Green
+                            backgroundColor: gradientSales,
                             borderWidth: 3,
                             pointBackgroundColor: '#fff',
-                            pointBorderColor: '#4f46e5',
+                            pointBorderColor: '#10b981',
                             pointBorderWidth: 2,
                             pointRadius: 4,
                             pointHoverRadius: 6,
                             fill: true,
-                            tension: 0.4, // Membuat garis melengkung (smooth curve)
-                            yAxisID: 'yRev',
+                            tension: 0.4,
+                            yAxisID: 'yVal',
                             order: 1
                         }
                     ]
@@ -437,7 +510,7 @@
                                     let datasetLabel = context.dataset.label || '';
                                     let value = context.parsed.y;
                                     
-                                    if (datasetLabel.includes('Pemasukan')) {
+                                    if (datasetLabel.includes('Nilai')) {
                                         return datasetLabel + ': Rp ' + value.toLocaleString('id-ID');
                                     } else {
                                         return datasetLabel + ': ' + value + ' Unit';
@@ -447,7 +520,7 @@
                         }
                     },
                     scales: {
-                        yRev: {
+                        yVal: {
                             type: 'linear',
                             display: true,
                             position: 'left',
@@ -462,8 +535,8 @@
                             },
                             title: {
                                 display: true,
-                                text: 'Pemasukan (Rp)',
-                                color: '#4f46e5',
+                                text: 'Nilai Penjualan (Rp)',
+                                color: '#10b981',
                                 font: { size: 10, weight: 'bold' }
                             }
                         },
@@ -472,7 +545,7 @@
                             display: true,
                             position: 'right',
                             beginAtZero: true,
-                            grid: { drawOnChartArea: false }, // Jangan timpa grid yRev
+                            grid: { drawOnChartArea: false }, // Jangan timpa grid yVal
                             ticks: {
                                 stepSize: 1,
                                 precision: 0
@@ -480,7 +553,7 @@
                             title: {
                                 display: true,
                                 text: 'Unit Terjual',
-                                color: '#10b981',
+                                color: '#f59e0b',
                                 font: { size: 10, weight: 'bold' }
                             }
                         },

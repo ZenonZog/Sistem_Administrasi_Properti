@@ -46,9 +46,10 @@ def dashboard(request):
     cicilan_jatuh_tempo = cicilan_jatuh_tempo_qs.order_by('tanggal_jatuh_tempo')
     
     import json
-    # Data Pemasukan (Revenue) & Penjualan Unit per Bulan untuk Chart.js (Tahun Ini)
+    # Data Pemasukan (Revenue), Penjualan Unit (Qty), & Nilai Penjualan (Harga Full) per Bulan untuk Chart.js (Tahun Ini)
     months_revenue = [0] * 12
     months_sales_qty = [0] * 12
+    months_sales_value = [0] * 12
     
     # Revenue: Berdasarkan Cicilan yang "Lunas" di tahun ini
     lunas_this_year = Cicilan.objects.filter(
@@ -62,8 +63,8 @@ def dashboard(request):
         if 1 <= c.bulan <= 12:
             months_revenue[c.bulan - 1] += int(c.jumlah_cicilan)
             
-    # Unit Terjual (Sales Qty): Kapan rumah kejual? Kita pakai Cicilan 'C1' terbit di tahun ini
-    first_installments_this_year = Cicilan.objects.filter(
+    # Unit Terjual (Sales Qty & Value): Kapan rumah kejual? Kita pakai Cicilan 'C1' terbit di tahun ini
+    first_installments_this_year = Cicilan.objects.prefetch_related('unit').filter(
         keterangan_cicilan='C1',
         tahun=today.year
     )
@@ -73,9 +74,11 @@ def dashboard(request):
     for c in first_installments_this_year:
         if 1 <= c.bulan <= 12:
             months_sales_qty[c.bulan - 1] += 1
+            months_sales_value[c.bulan - 1] += int(c.unit.harga_total)
             
     months_revenue_json = json.dumps(months_revenue)
     months_sales_qty_json = json.dumps(months_sales_qty)
+    months_sales_value_json = json.dumps(months_sales_value)
     
     # Ambil semua perumahan untuk opsi Filter Dropdown
     perumahans = Perumahan.objects.all().order_by('nama_perumahan')
@@ -88,6 +91,7 @@ def dashboard(request):
         'today': today,
         'revenue_data': months_revenue_json,
         'sales_qty_data': months_sales_qty_json,
+        'sales_value_data': months_sales_value_json,
         'current_year': today.year,
         'perumahans': perumahans,
         'filter_perumahan_id': int(filter_perumahan_id) if filter_perumahan_id else '',
