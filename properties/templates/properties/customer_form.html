@@ -54,5 +54,29 @@
             </form>
         </div>
     </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cek apakah ada data harga unit (dari backend)
+            {% if unit_prices_json %}
+            const unitPrices = {{ unit_prices_json|safe }};
+            const unitSelect = document.getElementById('id_unit');
+            const hargaInput = document.getElementById('id_harga_rumah');
+            
+            if (unitSelect && hargaInput) {
+                // Saat ada perubahan pada dropdown properti
+                unitSelect.addEventListener('change', function() {
+                    const selectedUnitId = this.value;
+                    if (selectedUnitId && unitPrices[selectedUnitId]) {
+                        // Isi harga secara otomatis dan sesuaikan format tanpa koma desimal ganda yang mengganggu
+                        hargaInput.value = unitPrices[selectedUnitId];
+                    } else {
+                        hargaInput.value = '';
+                    }
+                });
+            }
+            {% endif %}
+        });
+    </script>
 </body>
 </html>

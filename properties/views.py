@@ -199,7 +199,17 @@ def customer_create(request):
             return redirect('status_konsumen')
     else:
         form = CustomerRegistrationForm()
-    return render(request, 'properties/customer_form.html', {'form': form, 'title': 'Register Pelanggan Baru & Cicilan'})
+        
+    import json
+    units = Unit.objects.all()
+    unit_prices = {unit.id: float(unit.harga_total) for unit in units}
+    unit_prices_json = json.dumps(unit_prices)
+    
+    return render(request, 'properties/customer_form.html', {
+        'form': form, 
+        'title': 'Register Pelanggan Baru & Cicilan',
+        'unit_prices_json': unit_prices_json
+    })
 
 def customer_update(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
