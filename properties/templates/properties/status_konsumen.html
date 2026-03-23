@@ -13,11 +13,13 @@
         .navbar-custom { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .badge-keterangan { background-color: #e0e7ff; color: #4338ca; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem; font-weight: 600; }
+        .badge-metode { background-color: #fce7f3; color: #be185d; border-radius: 4px; padding: 3px 6px; font-size: 0.75rem; font-weight: 500; }
+        .badge-kredit { background-color: #dcfce7; color: #166534; border-radius: 4px; padding: 3px 6px; font-size: 0.75rem; font-weight: 600; }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-custom py-3 mb-4">
-        <div class="container">
+        <div class="container-fluid px-4">
             <a class="navbar-brand fw-bold text-primary" href="{% url 'dashboard' %}">
                 <i class="fa-solid fa-building-user me-2"></i> Sistem Administrasi Properti
             </a>
@@ -27,7 +29,7 @@
         </div>
     </nav>
 
-    <div class="container pb-5">
+    <div class="container-fluid px-4 pb-5">
         {% if messages %}
             {% for message in messages %}
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -40,7 +42,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-bold m-0"><i class="fa-solid fa-clipboard-list text-primary me-2"></i> {{ title }}</h3>
             <div class="d-flex gap-2">
-                <a href="{% url 'export_konsumen_excel' %}" id="exportBtn" class="btn btn-success shadow-sm"><i class="fa-solid fa-file-excel me-1"></i> Export Excel</a>
+                <a href="{% url 'export_konsumen_excel' %}?search={{ search_query }}&perumahan_id={{ filter_perumahan_id }}" class="btn btn-success shadow-sm"><i class="fa-solid fa-file-excel me-1"></i> Export Excel</a>
                 <a href="{% url 'customer_create' %}" class="btn btn-primary shadow-sm"><i class="fa-solid fa-user-plus me-1"></i> Tambah Pelanggan Baru</a>
             </div>
         </div>
@@ -50,8 +52,8 @@
             <div class="card-body">
                 <form method="GET" class="row g-3 align-items-end">
                     <div class="col-md-5">
-                        <label class="form-label text-muted small fw-bold">Cari Nama Customer</label>
-                        <input type="text" name="search" class="form-control" placeholder="Ketik nama customer..." value="{{ search_query }}">
+                        <label class="form-label text-muted small fw-bold">Cari Nama / No Telp Customer</label>
+                        <input type="text" name="search" class="form-control" placeholder="Ketik nama / no telp..." value="{{ search_query }}">
                     </div>
                     <div class="col-md-5">
                         <label class="form-label text-muted small fw-bold">Filter Cabang / Perumahan</label>
@@ -76,37 +78,62 @@
                         <thead class="table-light">
                             <tr>
                                 <th class="px-4 py-3">No</th>
-                                <th class="py-3">Nama Customer</th>
-                                <th class="py-3">No. Telp</th>
-                                <th class="py-3">Perumahan</th>
-                                <th class="py-3">Blok / Unit</th>
+                                <th class="py-3">Customer (NIK)</th>
+                                <th class="py-3">Kontak & Darurat</th>
+                                <th class="py-3">Properti & Metode</th>
                                 <th class="py-3">Cicilan Ke</th>
                                 <th class="py-3">Jlh Tagihan (Rp)</th>
-                                <th class="py-3">Progress Pembayaran</th>
+                                <th class="py-3">Progress Lunas</th>
+                                <th class="py-3">Total Harga</th>
                                 <th class="py-3">Sisa Hutang</th>
-                                <th class="py-3">Batas Tgl Bayar</th>
-                                <th class="py-3 text-center">Kelola Customer</th>
+                                <th class="py-3">Batas Bayar</th>
+                                <th class="py-3 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for item in cicilans %}
                             <tr>
                                 <td class="px-4 text-muted">{{ forloop.counter }}</td>
-                                <td class="fw-bold text-dark">{{ item.customer.nama_lengkap }}</td>
-                                <td>{{ item.customer.no_telepon|default:"-" }}</td>
-                                <td class="fw-bold text-secondary">{{ item.unit.perumahan.nama_perumahan|default:"-" }}</td>
-                                <td>{{ item.unit.kode_blok }} - {{ item.unit.tipe_rumah }}</td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ item.customer.nama_lengkap }}</div>
+                                    <div class="text-muted small">NIK: {{ item.customer.nik|default:"-" }}</div>
+                                    {% if item.customer.saldo_kredit and item.customer.saldo_kredit > 0 %}
+                                    <div class="badge-kredit mt-1 d-inline-block"><i class="fa-solid fa-wallet"></i> Saldo: {{ item.customer.saldo_kredit|rupiah }}</div>
+                                    {% endif %}
+                                </td>
+                                <td class="small">
+                                    <div><i class="fa-solid fa-phone fa-fw text-muted"></i> {{ item.customer.no_telepon|default:"-" }}</div>
+                                    {% if item.customer.nama_kontak_darurat %}
+                                    <div class="text-danger mt-1" title="Kontak Darurat"><i class="fa-solid fa-truck-medical fa-fw"></i> {{ item.customer.nama_kontak_darurat }} ({{ item.customer.no_kontak_darurat }})</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-secondary">{{ item.unit.perumahan.nama_perumahan|default:"-" }}</div>
+                                    <div class="small">Blok {{ item.unit.blok }} No. {{ item.unit.nomor_rumah }}</div>
+                                    <div class="badge-metode mt-1 d-inline-block">{{ item.customer.metode_pembelian|default:"Belum Diatur" }}</div>
+                                </td>
                                 <td><span class="badge-keterangan">{{ item.keterangan_cicilan }}</span></td>
-                                <td class="fw-medium">{{ item.jumlah_cicilan|rupiah }}</td>
+                                <td class="fw-medium text-primary">{{ item.jumlah_cicilan|rupiah }}</td>
                                 <td class="small">
                                     <div class="text-success fw-bold">{{ item.total_terbayar|rupiah }}</div>
-                                    <div class="text-muted" style="font-size: 0.75rem;">dari {{ item.harga_rumah|rupiah }}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Total Cicilan: {{ item.harga_rumah|rupiah }}</div>
+                                </td>
+                                <td class="small">
+                                    <div class="fw-bold">{{ item.total_harga_full|rupiah }}</div>
+                                    <div class="text-muted" style="font-size: 0.72rem;">Rumah: {{ item.unit.harga_total|rupiah }}</div>
+                                    {% if item.total_bunga %}<div class="text-muted" style="font-size: 0.72rem;">Bunga: +{{ item.total_bunga|rupiah }}</div>{% endif %}
                                 </td>
                                 <td class="text-danger fw-bold">{{ item.sisa_hutang|rupiah }}</td>
-                                <td>{{ item.tanggal_jatuh_tempo|date:"d M Y" }}</td>
+                                <td class="small">
+                                    <div>Jatuh Tempo: <span class="fw-medium">{{ item.tanggal_jatuh_tempo|date:"d M Y" }}</span></div>
+                                    {% if item.tanggal_batas_bayar %}
+                                    <div class="text-danger">Batas Bayar: {{ item.tanggal_batas_bayar|date:"d M Y" }}</div>
+                                    {% endif %}
+                                </td>
                                 <td class="text-center">
-                                    <a href="{% url 'customer_update' item.customer.pk %}" class="btn btn-sm btn-outline-primary" title="Edit Profil Customer"><i class="fa-solid fa-pen-to-square"></i></a>
-                                    <a href="{% url 'customer_delete' item.customer.pk %}" class="btn btn-sm btn-outline-danger ms-1" title="Hapus Customer"><i class="fa-solid fa-trash-can"></i></a>
+                                    <a href="{% url 'generate_surat_pesanan' item.customer.pk %}" class="btn btn-sm btn-outline-success mb-1" title="Generate Surat Pesanan" target="_blank"><i class="fa-solid fa-file-pdf"></i></a>
+                                    <a href="{% url 'customer_update' item.customer.pk %}" class="btn btn-sm btn-outline-primary mb-1" title="Edit Profil Customer"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <a href="{% url 'customer_delete' item.customer.pk %}" class="btn btn-sm btn-outline-danger mb-1" title="Hapus Customer"><i class="fa-solid fa-trash-can"></i></a>
                                 </td>
                             </tr>
                             {% empty %}
@@ -124,16 +151,5 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var exportBtn = document.getElementById('exportBtn');
-            if (exportBtn) {
-                exportBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    window.location.href = this.href + window.location.search;
-                });
-            }
-        });
-    </script>
 </body>
 </html>

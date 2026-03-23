@@ -212,8 +212,14 @@
                     <a href="{% url 'status_konsumen' %}" class="btn btn-outline-primary fw-medium rounded-pill px-4">
                         <i class="fa-solid fa-book-open me-1"></i> Data Konsumen
                     </a>
+                    <a href="{% url 'riwayat_cicilan' %}" class="btn btn-outline-primary fw-medium rounded-pill px-4">
+                        <i class="fa-solid fa-receipt me-1"></i> Riwayat Cicilan
+                    </a>
                     <a href="{% url 'unit_list' %}" class="btn btn-outline-primary fw-medium rounded-pill px-4">
                         <i class="fa-solid fa-house-user me-1"></i> Kelola Properti
+                    </a>
+                    <a href="{% url 'company_settings' %}" class="btn btn-outline-primary fw-medium rounded-pill px-4">
+                        <i class="fa-solid fa-gear me-1"></i> Pengaturan
                     </a>
                     <a href="/admin/" class="btn btn-primary fw-medium rounded-pill px-4 shadow-sm">
                         <i class="fa-solid fa-user-lock me-1"></i> Panel SuperAdmin
@@ -225,6 +231,15 @@
 
     <!-- Main Content -->
     <div class="container my-4">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
         <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
             <h2 class="page-header mb-0">Dashboard Ringkasan</h2>
             
@@ -313,49 +328,57 @@
                 <table class="table table-hover mt-3">
                     <thead>
                         <tr>
-                            <th>Blok / Unit</th>
+                            <th>Properti</th>
                             <th>Nama Customer</th>
                             <th>Jlh Cicilan (Rp)</th>
-                            <th>Jatuh Tempo</th>
+                            <th>Jatuh Tempo & Batas</th>
                             <th>Periode</th>
                             <th>Ket</th>
-                            <th>Status Limit</th>
+                            <th>Denda & SP</th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in cicilan_jatuh_tempo %}
                         <tr>
-                            <td class="fw-bold">{{ item.unit.kode_blok }}</td>
+                            <td>
+                                <div class="fw-bold">Blok {{ item.unit.blok }}</div>
+                                <div class="small text-muted">No. {{ item.unit.nomor_rumah }}</div>
+                            </td>
                             <td>{{ item.customer.nama_lengkap }}</td>
-                            <td>{{ item.jumlah_cicilan|rupiah }}</td>
-                            <td class="fw-medium">{{ item.tanggal_jatuh_tempo|date:"d M Y" }}</td>
+                            <td class="fw-medium text-danger">{{ item.jumlah_cicilan|rupiah }}</td>
+                            <td>
+                                <div class="fw-medium">{{ item.tanggal_jatuh_tempo|date:"d M Y" }}</div>
+                                {% if item.tanggal_batas_bayar %}
+                                <div class="text-danger small">Batas: {{ item.tanggal_batas_bayar|date:"d M Y" }}</div>
+                                {% endif %}
+                            </td>
                             <td>{{ item.bulan }} / {{ item.tahun }}</td>
                             <td><span class="badge-keterangan">{{ item.keterangan_cicilan }}</span></td>
                             <td>
-                                {% if item.tanggal_jatuh_tempo < today %}
-                                    <span class="status-danger"><i class="fa-solid fa-circle-exclamation me-1"></i>Terlewat</span>
+                                {% if item.denda_terhitung > 0 %}
+                                    <div class="text-danger fw-bold">+ {{ item.denda_terhitung|floatformat:"0" }}</div>
                                 {% else %}
-                                    <span class="status-warning"><i class="fa-solid fa-clock me-1"></i>Hampir Tiba</span>
+                                    <div class="text-muted small">0</div>
+                                {% endif %}
+                                {% if item.status_sp != '-' %}
+                                    <span class="badge bg-danger mt-1">{{ item.status_sp }}</span>
                                 {% endif %}
                             </td>
                             <td class="text-center d-flex justify-content-center gap-1">
                                 <!-- Tombol WA -->
                                 {% if item.customer.no_telepon %}
-                                <a href="https://wa.me/{{ item.customer.no_telepon|slice:'1:' }}?text=Halo%20Bapak%2FIbu%20{{ item.customer.nama_lengkap }}%2C%20mengingatkan%20tagihan%20cicilan%20properti%20Blok%20{{ item.unit.kode_blok }}%20jatuh%20tempo%20pada%20{{ item.tanggal_jatuh_tempo|date:'d M Y' }}.%20Mohon%20segera%20dilunasi." target="_blank" class="btn btn-sm btn-outline-success rounded-circle" title="Kirim Tagihan via WA">
+                                <a href="https://wa.me/{{ item.customer.no_telepon|slice:'1:' }}?text=Halo%20Bapak%2FIbu%20{{ item.customer.nama_lengkap }}%2C%20mengingatkan%20tagihan%20cicilan%20properti%20Blok%20{{ item.unit.blok }}%20No%20{{ item.unit.nomor_rumah }}%20jatuh%20tempo%20pada%20{{ item.tanggal_jatuh_tempo|date:'d M Y' }}.%20Mohon%20segera%20dilunasi." target="_blank" class="btn btn-sm btn-outline-success rounded-circle" title="Kirim Tagihan via WA">
                                     <i class="fa-brands fa-whatsapp"></i>
                                 </a>
                                 {% else %}
                                 <button class="btn btn-sm btn-outline-secondary rounded-circle" disabled title="No HP Tidak Tersedia"><i class="fa-brands fa-whatsapp"></i></button>
                                 {% endif %}
                                 
-                                <!-- Tombol Verifikasi Pelunasan (Lunas) -->
-                                <form action="{% url 'mark_lunas' item.pk %}" method="POST" style="display:inline;" onsubmit="return confirm('Tandai cicilan ini sebagai LUNAS? Data akan disembunyikan dari daftar peringatan.');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-primary rounded-circle" title="Tandai Sudah Bayar (Lunas)">
-                                        <i class="fa-solid fa-check"></i>
-                                    </button>
-                                </form>
+                                <!-- Tombol Verifikasi Pelunasan (Lunas) - Sekarang pakai Link ke GET Form -->
+                                <a href="{% url 'konfirmasi_bayar' item.pk %}?from=dashboard" class="btn btn-sm btn-outline-primary rounded-circle" title="Proses Pembayaran & Cek Lunas">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                                </a>
                             </td>
                         </tr>
                         {% empty %}

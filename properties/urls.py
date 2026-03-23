@@ -4,7 +4,8 @@ from . import views
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('export-excel/', views.export_cicilan_excel, name='export_excel'),
-    path('cicilan/<int:pk>/mark-lunas/', views.mark_lunas, name='mark_lunas'),
+    path('cicilan/<int:pk>/konfirmasi-bayar/', views.konfirmasi_bayar, name='konfirmasi_bayar'),
+    path('riwayat-cicilan/', views.riwayat_cicilan, name='riwayat_cicilan'),
     path('status-konsumen/', views.status_konsumen, name='status_konsumen'),
 
     # Customer URLs
@@ -21,4 +22,10 @@ urlpatterns = [
     # Export URLs
     path('export-konsumen/', views.export_konsumen_excel, name='export_konsumen_excel'),
     path('export-properti/', views.export_properti_excel, name='export_properti_excel'),
+    
+    # Settings
+    path('settings/company/', views.company_settings, name='company_settings'),
+    
+    # Surat Pesanan
+    path('customers/<int:pk>/surat-pesanan/', views.generate_surat_pesanan, name='generate_surat_pesanan'),
 ]

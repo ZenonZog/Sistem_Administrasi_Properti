@@ -57,6 +57,55 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // === RUPIAH FORMATTING untuk UTJ & DP ===
+            function formatRupiah(angka) {
+                if (!angka && angka !== 0) return '';
+                let num = String(angka).replace(/\D/g, '');
+                if (!num) return '';
+                return num.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            }
+            
+            function setupRupiahField(fieldId) {
+                const field = document.getElementById(fieldId);
+                if (!field) return;
+                
+                // Ganti type dari number ke text supaya bisa pakai titik
+                field.type = 'text';
+                field.setAttribute('inputmode', 'numeric');
+                
+                // Format nilai awal
+                if (field.value && field.value !== '0') {
+                    field.value = formatRupiah(field.value);
+                } else {
+                    field.value = '';
+                }
+                
+                // Update placeholder supaya lebih jelas
+                field.placeholder = 'Contoh: 10.000.000';
+                
+                // Live format saat mengetik
+                field.addEventListener('input', function() {
+                    let raw = this.value.replace(/\D/g, '');
+                    this.value = formatRupiah(raw);
+                });
+            }
+            
+            setupRupiahField('id_utj');
+            setupRupiahField('id_dp');
+            
+            // Saat form di-submit, kembalikan ke angka biasa
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    ['id_utj', 'id_dp'].forEach(function(fid) {
+                        const f = document.getElementById(fid);
+                        if (f) {
+                            f.value = f.value.replace(/\./g, '');
+                        }
+                    });
+                });
+            }
+
             {% if perumahan_units_json %}
             const perumahanUnits = {{ perumahan_units_json|safe }};
             const perumahanSelect = document.getElementById('id_perumahan');

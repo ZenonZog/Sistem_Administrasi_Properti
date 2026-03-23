@@ -56,8 +56,10 @@
                             <tr>
                                 <th class="px-4 py-3">No</th>
                                 <th class="py-3">Perumahan</th>
-                                <th class="py-3">Kode Blok</th>
+                                <th class="py-3">Blok</th>
+                                <th class="py-3">No. Rumah</th>
                                 <th class="py-3">Tipe/Model</th>
+                                <th class="py-3 text-center">LT/LB (m²)</th>
                                 <th class="py-3">Harga Total (Rp)</th>
                                 <th class="py-3 text-center">Status</th>
                                 <th class="py-3 text-center">Aksi</th>
@@ -68,8 +70,10 @@
                             <tr>
                                 <td class="px-4 text-muted">{{ forloop.counter }}</td>
                                 <td class="fw-bold text-secondary">{{ unit.perumahan.nama_perumahan|default:"-" }}</td>
-                                <td class="fw-bold text-dark">{{ unit.kode_blok }}</td>
+                                <td class="fw-bold text-dark">{{ unit.blok }}</td>
+                                <td class="fw-bold text-dark">{{ unit.nomor_rumah }}</td>
                                 <td>{{ unit.tipe_rumah }}</td>
+                                <td class="text-center text-muted small">{{ unit.luas_tanah|default:"-" }} / {{ unit.luas_bangunan|default:"-" }}</td>
                                 <td class="fw-medium">{{ unit.harga_total|rupiah }}</td>
                                 <td class="text-center">
                                     <span class="status-badge bg-{{ unit.status }}">{{ unit.status }}</span>
@@ -81,7 +85,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">Belum ada data properti terdaftar.</td>
+                                <td colspan="9" class="text-center py-4 text-muted">Belum ada data properti terdaftar.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
