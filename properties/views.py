@@ -94,6 +94,7 @@ def dashboard(request):
         'current_year': today.year,
         'perumahans': perumahans,
         'filter_perumahan_id': int(filter_perumahan_id) if filter_perumahan_id else '',
+        'active_page': 'dashboard',
     }
     return render(request, 'properties/dashboard.html', context)
 
@@ -174,6 +175,7 @@ def riwayat_cicilan(request):
         'filter_perumahan_id': int(filter_perumahan_id) if filter_perumahan_id else '',
         'filter_status': filter_status,
         'today': today,
+        'active_page': 'riwayat',
     }
     return render(request, 'properties/riwayat_cicilan.html', context)
 
@@ -248,6 +250,7 @@ def konfirmasi_bayar(request, pk):
         'source': source,
         'saldo_kredit': saldo_kredit,
         'tagihan_setelah_kredit': tagihan_setelah_kredit,
+        'active_page': 'riwayat',
     })
 
 # --- REKAP STATUS SEMUA KONSUMEN ---
@@ -344,7 +347,8 @@ def status_konsumen(request):
         'title': 'Data Status Cicilan Konsumen',
         'perumahans': perumahans,
         'search_query': search_query,
-        'filter_perumahan_id': int(filter_perumahan_id) if filter_perumahan_id else ''
+        'filter_perumahan_id': int(filter_perumahan_id) if filter_perumahan_id else '',
+        'active_page': 'konsumen',
     }
     return render(request, 'properties/status_konsumen.html', context_data)
 
@@ -521,7 +525,8 @@ def customer_create(request):
     return render(request, 'properties/customer_form.html', {
         'form': form, 
         'title': 'Register Pelanggan Baru & Cicilan',
-        'perumahan_units_json': json.dumps(perumahan_units)
+        'perumahan_units_json': json.dumps(perumahan_units),
+        'active_page': 'konsumen',
     })
 
 def customer_update(request, pk):
@@ -544,7 +549,7 @@ def customer_update(request, pk):
             
         form = CustomerForm(instance=customer, initial=initial_data)
         
-    return render(request, 'properties/customer_form.html', {'form': form, 'title': 'Edit Data Customer', 'units_owned': units_owned})
+    return render(request, 'properties/customer_form.html', {'form': form, 'title': 'Edit Data Customer', 'units_owned': units_owned, 'active_page': 'konsumen'})
 
 def customer_delete(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
@@ -553,13 +558,13 @@ def customer_delete(request, pk):
         customer.delete()
         messages.success(request, f"Data Customer {nama} berhasil dihapus beserta seluruh cicilannya.")
         return redirect('status_konsumen')
-    return render(request, 'properties/customer_confirm_delete.html', {'customer': customer})
+    return render(request, 'properties/customer_confirm_delete.html', {'customer': customer, 'active_page': 'konsumen'})
 
 # --- CRUD UNIT / PROPERTI ---
 
 def unit_list(request):
     units = Unit.objects.select_related('perumahan').all().order_by('perumahan__nama_perumahan', 'blok', 'nomor_rumah')
-    return render(request, 'properties/unit_list.html', {'units': units})
+    return render(request, 'properties/unit_list.html', {'units': units, 'active_page': 'properti'})
 
 def export_properti_excel(request):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -595,7 +600,7 @@ def unit_create(request):
             return redirect('unit_list')
     else:
         form = UnitForm()
-    return render(request, 'properties/unit_form.html', {'form': form, 'title': 'Tambah Properti/Unit'})
+    return render(request, 'properties/unit_form.html', {'form': form, 'title': 'Tambah Properti/Unit', 'active_page': 'properti'})
 
 def unit_update(request, pk):
     unit = get_object_or_404(Unit, pk=pk)
@@ -607,7 +612,7 @@ def unit_update(request, pk):
             return redirect('unit_list')
     else:
         form = UnitForm(instance=unit)
-    return render(request, 'properties/unit_form.html', {'form': form, 'title': 'Edit Properti/Unit'})
+    return render(request, 'properties/unit_form.html', {'form': form, 'title': 'Edit Properti/Unit', 'active_page': 'properti'})
 
 def unit_delete(request, pk):
     unit = get_object_or_404(Unit, pk=pk)
@@ -616,7 +621,7 @@ def unit_delete(request, pk):
         unit.delete()
         messages.success(request, f"Data Properti/Unit {kode} berhasil dihapus.")
         return redirect('unit_list')
-    return render(request, 'properties/unit_confirm_delete.html', {'unit': unit})
+    return render(request, 'properties/unit_confirm_delete.html', {'unit': unit, 'active_page': 'properti'})
 
 # --- COMPANY SETTINGS ---
 
@@ -650,6 +655,7 @@ def company_settings(request):
     return render(request, 'properties/company_settings.html', {
         'form': form,
         'perumahans': perumahans,
+        'active_page': 'settings',
     })
 
 # --- TERBILANG (Angka ke Kata Indonesia) ---

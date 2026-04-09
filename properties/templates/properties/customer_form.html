@@ -1,32 +1,25 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
-        .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 600px; margin: 2rem auto; }
+{% extends "properties/base_sidebar.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
         .form-label { font-weight: 500; color: #374151; }
-    </style>
-</head>
-<body>
-    <div class="container pb-5 pt-4">
+{% endblock %}
+
+{% block content %}
         <div class="mb-3 text-center">
             <h3 class="fw-bold">{{ title }}</h3>
             <p class="text-muted">Lengkapi formulir di bawah ini untuk mengelola data customer.</p>
         </div>
 
-        <div class="card card-custom p-4">
+        <div class="card card-custom p-4" style="max-width:600px; margin:0 auto;">
             <form method="POST">
                 {% csrf_token %}
                 
                 {% if units_owned %}
                 <div class="mb-3">
                     <label class="form-label">Blok / Properti Dimiliki</label>
-                    <div class="form-control bg-light text-muted" readonly style="min-height: 38px;">
+                    <div class="form-control bg-light text-muted" readonly style="min-height:38px;">
                         {% for unit in units_owned %}
                             <span class="badge bg-secondary">{{ unit.kode_blok }} - {{ unit.tipe_rumah }}</span>
                         {% endfor %}
@@ -39,12 +32,8 @@
                 <div class="mb-3">
                     <label class="form-label">{{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}</label>
                     {{ field }}
-                    {% if field.help_text %}
-                        <div class="form-text mt-1 text-muted"><i class="fa-solid fa-circle-info"></i> {{ field.help_text }}</div>
-                    {% endif %}
-                    {% if field.errors %}
-                        <div class="text-danger small mt-1">{% for error in field.errors %}{{ error }}{% endfor %}</div>
-                    {% endif %}
+                    {% if field.help_text %}<div class="form-text mt-1 text-muted"><i class="fa-solid fa-circle-info"></i> {{ field.help_text }}</div>{% endif %}
+                    {% if field.errors %}<div class="text-danger small mt-1">{% for error in field.errors %}{{ error }}{% endfor %}</div>{% endif %}
                 </div>
                 {% endfor %}
                 <div class="d-flex justify-content-end gap-2">
@@ -53,111 +42,50 @@
                 </div>
             </form>
         </div>
-    </div>
-    
+{% endblock %}
+
+{% block extra_js %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // === RUPIAH FORMATTING untuk UTJ & DP ===
             function formatRupiah(angka) {
                 if (!angka && angka !== 0) return '';
                 let num = String(angka).replace(/\D/g, '');
                 if (!num) return '';
                 return num.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
             }
-            
             function setupRupiahField(fieldId) {
                 const field = document.getElementById(fieldId);
                 if (!field) return;
-                
-                // Ganti type dari number ke text supaya bisa pakai titik
-                field.type = 'text';
-                field.setAttribute('inputmode', 'numeric');
-                
-                // Format nilai awal
-                if (field.value && field.value !== '0') {
-                    field.value = formatRupiah(field.value);
-                } else {
-                    field.value = '';
-                }
-                
-                // Update placeholder supaya lebih jelas
+                field.type = 'text'; field.setAttribute('inputmode', 'numeric');
+                if (field.value && field.value !== '0') { field.value = formatRupiah(field.value); } else { field.value = ''; }
                 field.placeholder = 'Contoh: 10.000.000';
-                
-                // Live format saat mengetik
-                field.addEventListener('input', function() {
-                    let raw = this.value.replace(/\D/g, '');
-                    this.value = formatRupiah(raw);
-                });
+                field.addEventListener('input', function() { let raw = this.value.replace(/\D/g, ''); this.value = formatRupiah(raw); });
             }
-            
             setupRupiahField('id_utj');
             setupRupiahField('id_dp');
-            
-            // Saat form di-submit, kembalikan ke angka biasa
             const form = document.querySelector('form');
-            if (form) {
-                form.addEventListener('submit', function() {
-                    ['id_utj', 'id_dp'].forEach(function(fid) {
-                        const f = document.getElementById(fid);
-                        if (f) {
-                            f.value = f.value.replace(/\./g, '');
-                        }
-                    });
-                });
-            }
+            if (form) { form.addEventListener('submit', function() { ['id_utj', 'id_dp'].forEach(function(fid) { const f = document.getElementById(fid); if (f) { f.value = f.value.replace(/\./g, ''); } }); }); }
 
             {% if perumahan_units_json %}
             const perumahanUnits = {{ perumahan_units_json|safe }};
             const perumahanSelect = document.getElementById('id_perumahan');
             const unitSelect = document.getElementById('id_unit');
             const hargaInput = document.getElementById('id_harga_rumah');
-            
-            // Simpan initial option text
             const defaultUnitOption = document.createElement('option');
-            defaultUnitOption.text = '---------';
-            defaultUnitOption.value = '';
-            
+            defaultUnitOption.text = '---------'; defaultUnitOption.value = '';
             if (perumahanSelect && unitSelect && hargaInput) {
-                // Fungsi untuk merender ulang combobox Unit berdasarkan Perumahan
                 function updateUnitDropdown() {
                     const selectedPerumahanId = perumahanSelect.value || "null";
                     const availableUnits = perumahanUnits[selectedPerumahanId] || [];
-                    
-                    // Kosongkan list unit saat ini
-                    unitSelect.innerHTML = '';
-                    unitSelect.appendChild(defaultUnitOption.cloneNode(true));
-                    
-                    // Tambahkan opsi list unit yang sesuai dengan perumahan yg dipilih
-                    availableUnits.forEach(function(unit) {
-                        const option = document.createElement('option');
-                        option.value = unit.id;
-                        option.text = unit.text;
-                        option.dataset.price = unit.price;
-                        unitSelect.appendChild(option);
-                    });
-                    
-                    // Kosongkan harga saat ganti perumahan
+                    unitSelect.innerHTML = ''; unitSelect.appendChild(defaultUnitOption.cloneNode(true));
+                    availableUnits.forEach(function(unit) { const option = document.createElement('option'); option.value = unit.id; option.text = unit.text; option.dataset.price = unit.price; unitSelect.appendChild(option); });
                     hargaInput.value = '';
                 }
-
-                // Saat pilihan perumahan diganti
                 perumahanSelect.addEventListener('change', updateUnitDropdown);
-
-                // Saat pilihan unit diganti (auto-fill harga)
-                unitSelect.addEventListener('change', function() {
-                    const selectedOption = this.options[this.selectedIndex];
-                    if (selectedOption && selectedOption.dataset.price) {
-                        hargaInput.value = selectedOption.dataset.price;
-                    } else {
-                        hargaInput.value = '';
-                    }
-                });
-                
-                // Trigger sekali saat halaman di-load
+                unitSelect.addEventListener('change', function() { const sel = this.options[this.selectedIndex]; if (sel && sel.dataset.price) { hargaInput.value = sel.dataset.price; } else { hargaInput.value = ''; } });
                 updateUnitDropdown();
             }
             {% endif %}
         });
     </script>
-</body>
-</html>
+{% endblock %}

@@ -18,16 +18,21 @@ Berikut adalah fitur-fitur unggulan yang ada di dalam sistem ini:
 3. KELOLA DATA PROPERTI (CRUD)
    - Admin dapat menambah, mengubah, atau menghapus daftar blok/unit rumah.
    - Menyimpan informasi penting seperti Nama Perumahan, Kode Blok (cth: A5), Tipe Rumah (cth: Tipe 45), dan Harga Kesepakatan.
+   - Input harga ditampilkan dalam format Rupiah (titik ribuan) agar mudah dibaca dan tidak salah ketik.
 
 4. PENDAFTARAN KONSUMEN & SIMULASI KREDIT OTOMATIS
    - Mendaftarkan pelanggan baru beserta unit rumah yang dibelinya dengan sistem Dropdown bertingkat (Pilih Perumahan -> Muncul Blok yang tersedia di sana).
    - Fitur "Auto-Fill": Saat memilih blok/unit, harga rumah akan terisi otomatis untuk menghindari salah ketik.
+   - Input angka UTJ dan DP dilengkapi format Rupiah otomatis (live formatting) saat mengetik, sehingga memudahkan pembacaan angka besar.
+   - Seluruh input blok otomatis dikonversi ke huruf kapital untuk menjaga konsistensi data (misal: a4 → A4).
    - Auto-Generate Tagihan: Hanya dengan memasukkan lama cicilan (misalnya 120 bulan), sistem akan langsung mensimulasikan dan membuat keseluruhan tagihan (120 bulan) secara otomatis ke dalam database tanpa perlu diinput manual tiap bulan.
 
 5. MONITORING STATUS & SISA HUTANG KONSUMEN (Advanced Search & Filter)
    - Pada halaman "Data Konsumen", admin dapat melihat nama pelanggan, nomor kontak, serta tagihan spesifik yang *sedang berjalan*.
    - Menyediakan fitur "Smart Filter & Search": Admin bisa memfilter konsumen berdasarkan Perumahan, atau langsung mengetik nama konsumen di kolom pencarian.
    - Sistem secara cerdas menghitung berapa total uang yang sudah dibayar konsumen, dan mengkalkulasi Sisa Hutang/Kredit berjalan secara real-time.
+   - Terdapat kolom "Total Harga" yang menampilkan harga rumah ditambah total bunga (jika KPR), sehingga admin bisa melihat total keseluruhan kewajiban konsumen.
+   - Fitur "Saldo Kredit Lebih Bayar": Jika konsumen membayar lebih dari tagihan, kelebihan otomatis tersimpan dan ditampilkan sebagai saldo kredit, yang akan mengurangi tagihan berikutnya secara otomatis.
 
 6. VERIFIKASI PELUNASAN ONE-CLICK
    - Pembayaran cicilan yang masuk dapat diselesaikan hanya dengan menekan 1 tombol verifikasi lunas di Dashboard atau di detail pelanggan.
@@ -40,14 +45,25 @@ Berikut adalah fitur-fitur unggulan yang ada di dalam sistem ini:
      c) Laporan Master Data Properti (Dari halaman Daftar Properti).
    - Fitur ini sangat mempermudah pembuatan laporan bulanan untuk diserahkan kepada Pimpinan/Atasan.
 
-8. INTEGRASI WHATSAPP PENAGIHAN
+8. GENERATE SURAT PESANAN KAVLING (PDF)
+   - Sistem dapat menghasilkan dokumen Surat Pesanan Kavling dalam format PDF secara otomatis berdasarkan data konsumen, unit properti, dan jadwal pembayaran yang sudah tersimpan di database.
+   - Layout PDF terdiri dari: Header Perusahaan, Data Pembeli (termasuk Kontak Darurat), Data Umum Tanah & Bangunan, Harga Jual beserta konversi Terbilang (angka ke kata Bahasa Indonesia), Jadwal Pembayaran (tabel angsuran + ringkasan), Info Rekening Bank, dan kolom Tanda Tangan.
+   - PDF dirancang fit dalam 1 halaman A4 agar siap cetak langsung.
+   - Tombol generate PDF tersedia langsung di halaman Status Konsumen (ikon hijau di kolom Aksi).
+
+9. HALAMAN PENGATURAN (Settings)
+   - Tersedia halaman Pengaturan yang dapat diakses dari tombol "Pengaturan" di Dashboard.
+   - Tab "Data Perusahaan": Admin dapat mengisi/mengubah Nama PT, Alamat Perusahaan, 2 Rekening Bank (nama bank, nomor, cabang), dan Catatan khusus yang ditampilkan di Surat Pesanan.
+   - Tab "Lokasi Perumahan": Admin dapat mengisi data Desa/Kelurahan dan Kecamatan untuk setiap perumahan, yang akan otomatis tampil di PDF Surat Pesanan.
+
+10. INTEGRASI WHATSAPP PENAGIHAN
    - Tersedia tombol shortcut WhatsApp di sebelah nama konsumen yang sedang jatuh tempo.
    - Sekali klik akan langsung membuka chat WhatsApp dengan teks penagihan otomatis yang sudah tersusun rapi beserta nama dan blok propertinya (tanpa perlu ketik manual).
 
-9. MANAJEMEN DATABASE KELAS ATAS (SuperAdmin)
+11. MANAJEMEN DATABASE KELAS ATAS (SuperAdmin)
    - Tersedia pintu belakang khusus "Panel SuperAdmin" yang dapat digunakan oleh IT atau Manager untuk mengakses, mengedit, atau membersihkan data mentah dari keseluruhan aplikasi agar tidak ada data yang menyelip.
 
-10. CLOUD HOSTING 24/7 (Vercel & Aiven)
+12. CLOUD HOSTING 24/7 (Vercel & Aiven)
    - Aplikasi ini 100% online. Menggunakan database Cloud MySQL (Aiven) dan Serverless Hosting (Vercel).
    - Aksesibel kapanpun, dimanapun, lewat Laptop, Komputer Kantor, maupun Smartphone (Tanpa perlu instalasi di masing-masing perangkat).
 

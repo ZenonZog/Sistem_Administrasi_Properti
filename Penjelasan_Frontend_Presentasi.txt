@@ -6,10 +6,13 @@ Jika dosen atau penguji bertanya, "Aplikasi ini pakai Frontend apa?", kamu bisa 
 
 Selain itu, saya juga menambahkan beberapa sentuhan *Custom CSS* dengan konsep *Glassmorphism* (efek kaca tembus pandang pada kartu statistik) serta menggunakan **Chart.js (JavaScript)** untuk me-*render* grafik data pemasukan secara dinamis dan interaktif tanpa perlu nge-*reload* seluruh halaman."
 
+"Untuk kebutuhan *Generate Dokumen*, saya menggunakan library **ReportLab** di sisi Backend (Python) untuk menghasilkan file PDF Surat Pesanan Kavling secara langsung dari data yang ada di database. Dengan pendekatan ini, proses pembuatan surat bersifat otomatis dan real-time tanpa perlu template dokumen statis."
+
 ===
 **Ringkasan Stack Teknologi Lengkapmu:**
 - **Backend/Logic System:** Python (Framework: Django 4)
 - **Database:** MySQL v8 (Di-host menggunakan Aiven Cloud)
 - **Frontend/UI:** HTML5, CSS3, Vanilla JavaScript, & Bootstrap 5
 - **Data Visualization (Grafik):** Chart.js
+- **PDF Generation (Surat Pesanan):** ReportLab (Python Library)
 - **Server/Hosting:** Vercel (Serverless Deployment)

@@ -1,45 +1,15 @@
+{% extends "properties/base_sidebar.html" %}
 {% load custom_filters %}
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rekap Status Konsumen</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
-        .navbar-custom { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .badge-keterangan { background-color: #e0e7ff; color: #4338ca; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem; font-weight: 600; }
+
+{% block title %}Rekap Status Konsumen{% endblock %}
+
+{% block extra_css %}
         .badge-metode { background-color: #fce7f3; color: #be185d; border-radius: 4px; padding: 3px 6px; font-size: 0.75rem; font-weight: 500; }
         .badge-kredit { background-color: #dcfce7; color: #166534; border-radius: 4px; padding: 3px 6px; font-size: 0.75rem; font-weight: 600; }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-custom py-3 mb-4">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold text-primary" href="{% url 'dashboard' %}">
-                <i class="fa-solid fa-building-user me-2"></i> Sistem Administrasi Properti
-            </a>
-            <div class="ms-auto">
-                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm me-2"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</a>
-            </div>
-        </div>
-    </nav>
+{% endblock %}
 
-    <div class="container-fluid px-4 pb-5">
-        {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
-        {% endif %}
-
-        <div class="d-flex justify-content-between align-items-center mb-4">
+{% block content %}
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <h3 class="fw-bold m-0"><i class="fa-solid fa-clipboard-list text-primary me-2"></i> {{ title }}</h3>
             <div class="d-flex gap-2">
                 <a href="{% url 'export_konsumen_excel' %}?search={{ search_query }}&perumahan_id={{ filter_perumahan_id }}" class="btn btn-success shadow-sm"><i class="fa-solid fa-file-excel me-1"></i> Export Excel</a>
@@ -47,7 +17,6 @@
             </div>
         </div>
         
-        <!-- Filter Bar -->
         <div class="card card-custom mb-4">
             <div class="card-body">
                 <form method="GET" class="row g-3 align-items-end">
@@ -116,12 +85,12 @@
                                 <td class="fw-medium text-primary">{{ item.jumlah_cicilan|rupiah }}</td>
                                 <td class="small">
                                     <div class="text-success fw-bold">{{ item.total_terbayar|rupiah }}</div>
-                                    <div class="text-muted" style="font-size: 0.75rem;">Total Cicilan: {{ item.harga_rumah|rupiah }}</div>
+                                    <div class="text-muted" style="font-size:0.75rem;">Total Cicilan: {{ item.harga_rumah|rupiah }}</div>
                                 </td>
                                 <td class="small">
                                     <div class="fw-bold">{{ item.total_harga_full|rupiah }}</div>
-                                    <div class="text-muted" style="font-size: 0.72rem;">Rumah: {{ item.unit.harga_total|rupiah }}</div>
-                                    {% if item.total_bunga %}<div class="text-muted" style="font-size: 0.72rem;">Bunga: +{{ item.total_bunga|rupiah }}</div>{% endif %}
+                                    <div class="text-muted" style="font-size:0.72rem;">Rumah: {{ item.unit.harga_total|rupiah }}</div>
+                                    {% if item.total_bunga %}<div class="text-muted" style="font-size:0.72rem;">Bunga: +{{ item.total_bunga|rupiah }}</div>{% endif %}
                                 </td>
                                 <td class="text-danger fw-bold">{{ item.sisa_hutang|rupiah }}</td>
                                 <td class="small">
@@ -149,7 +118,4 @@
                 </div>
             </div>
         </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}
